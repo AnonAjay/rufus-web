@@ -477,3 +477,47 @@ body {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* Push to Talk Mic Button */
+.command-mic-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.command-mic-btn:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+.command-mic-btn.recording {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #ef4444;
+  color: #ef4444;
+  animation: pulse-red 1s infinite alternate;
+}
+
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.4); }
+  100% { box-shadow: 0 0 16px rgba(239, 68, 68, 0.9); }
+}
+
+.mic-error-banner {
+  color: #ef4444;
+  font-size: 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+

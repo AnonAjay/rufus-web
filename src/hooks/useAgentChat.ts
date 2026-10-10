@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { ChatMessage, AgentChatResponse } from "../types/agent";
+import { ChatMessage, AgentChatResponse, AgentVoiceResponse } from "../types/agent";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
 
@@ -81,11 +81,82 @@ export const useAgentChat = (initialSessionId: string = "rufus-desktop-session")
     [sessionId]
   );
 
+  const sendVoiceMessage = useCallback(
+    async (audioBlob: Blob) => {
+      if (!audioBlob || audioBlob.size === 0) return;
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const formData = new FormData();
+        formData.append("session_id", sessionId);
+        formData.append("audio_file", audioBlob, "voice.webm");
+
+        const response = await fetch(`${API_BASE_URL}/agent/voice`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.detail || `Server error: ${response.status}`);
+        }
+
+        const data: AgentVoiceResponse = await response.json();
+        const timeStr = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+        const userMsg: ChatMessage = {
+          id: `user-${Date.now()}`,
+          sender: "user",
+          text: data.transcript || "[Unintelligible audio]",
+          timestamp: timeStr,
+        };
+
+        const rufusMsg: ChatMessage = {
+          id: `rufus-${Date.now()}`,
+          sender: "rufus",
+          text: data.reply_text,
+          timestamp: timeStr,
+          actions: data.actions,
+          modelUsed: data.model_used,
+        };
+
+        setMessages((prev) => [...prev, userMsg, rufusMsg]);
+
+        // In-memory playback of Piper TTS speech
+        if (data.audio_base64 && data.audio_mime_type) {
+          try {
+            const audio = new Audio(`data:${data.audio_mime_type};base64,${data.audio_base64}`);
+            audio.play().catch((playErr) => console.warn("Audio autoplay blocked:", playErr));
+          } catch (err) {
+            console.warn("Audio element playback error:", err);
+          }
+        }
+      } catch (err: any) {
+        const errMsg = err?.message || "Failed to process voice request.";
+        setError(errMsg);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `err-${Date.now()}`,
+            sender: "rufus",
+            text: `[Voice Error: ${errMsg}]`,
+            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          },
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [sessionId]
+  );
+
   return {
     messages,
     isLoading,
     error,
     sendMessage,
+    sendVoiceMessage,
     sessionId,
   };
 };

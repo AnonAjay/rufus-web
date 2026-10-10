@@ -9,7 +9,7 @@ import "./App.css";
 
 export const App: React.FC = () => {
   const { status: systemStatus } = useSystemStatus();
-  const { messages, isLoading, sendMessage } = useAgentChat();
+  const { messages, isLoading, sendMessage, sendVoiceMessage } = useAgentChat();
   const feedEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll chat feed to bottom on new messages
@@ -81,6 +81,7 @@ export const App: React.FC = () => {
       <footer className="app-footer">
         <CommandBar
           onSendMessage={sendMessage}
+          onSendVoice={sendVoiceMessage}
           isLoading={isLoading}
         />
       </footer>

@@ -13,6 +13,15 @@ export interface AgentChatResponse {
   actions: string[];
 }
 
+export interface AgentVoiceResponse {
+  transcript: string;
+  reply_text: string;
+  model_used: string;
+  audio_base64: string;
+  audio_mime_type: string;
+  actions: string[];
+}
+
 export interface SystemStatus {
   backendOnline: boolean;
   ollamaOnline: boolean;
