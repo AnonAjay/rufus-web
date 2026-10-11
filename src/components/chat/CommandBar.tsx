@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAudioRecorder } from "../../hooks/useAudioRecorder";
+import { AudioWaveform } from "../common/AudioWaveform";
 
 export interface CommandBarProps {
   onSendMessage: (text: string) => void;
@@ -23,7 +24,13 @@ export const CommandBar: React.FC<CommandBarProps> = ({
   disabled,
 }) => {
   const [input, setInput] = useState("");
-  const { isRecording, startRecording, stopRecording, error: micError } = useAudioRecorder();
+  const {
+    isRecording,
+    waveformBars,
+    startRecording,
+    stopRecording,
+    error: micError,
+  } = useAudioRecorder();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +62,7 @@ export const CommandBar: React.FC<CommandBarProps> = ({
 
   return (
     <div className="command-bar-wrapper">
-      {micError && <div className="mic-error-banner">Microphone Error: {micError}</div>}
+      {micError && <div className="mic-error-banner">Microphone Notice: {micError}</div>}
 
       <div className="quick-commands-row">
         {QUICK_COMMANDS.map((cmd, i) => (
@@ -75,7 +82,7 @@ export const CommandBar: React.FC<CommandBarProps> = ({
         <input
           type="text"
           className="command-input"
-          placeholder={isRecording ? "Listening... Release button to send" : "Ask Rufus or type a command..."}
+          placeholder={isRecording ? "Listening to your voice... Release when finished" : "Ask Rufus or type a command..."}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={isLoading || disabled || isRecording}
@@ -92,7 +99,14 @@ export const CommandBar: React.FC<CommandBarProps> = ({
           disabled={isLoading || disabled}
           title="Click and hold to speak"
         >
-          {isRecording ? "🔴 Speaking..." : "🎙️ Push-to-Talk"}
+          {isRecording ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <AudioWaveform bars={waveformBars} isActive={true} height={16} />
+              <span>Speaking...</span>
+            </div>
+          ) : (
+            <span>🎙️ Push-to-Talk</span>
+          )}
         </button>
 
         <button

@@ -13,8 +13,12 @@
     "windows": [
       {
         "title": "Rufus Desktop Assistant",
-        "width": 960,
-        "height": 720
+        "width": 1080,
+        "height": 720,
+        "minWidth": 360,
+        "minHeight": 400,
+        "decorations": false,
+        "alwaysOnTop": false
       }
     ],
     "security": {

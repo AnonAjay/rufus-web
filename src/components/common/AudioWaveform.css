@@ -1,0 +1,22 @@
+.audio-waveform-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 0 4px;
+}
+
+.waveform-bar {
+  display: block;
+  width: 3px;
+  border-radius: 2px;
+  transition: height 0.08s ease, box-shadow 0.15s ease;
+}
+
+.audio-waveform-container.idle .waveform-bar {
+  opacity: 0.35;
+}
+
+.audio-waveform-container.active .waveform-bar {
+  opacity: 1;
+}

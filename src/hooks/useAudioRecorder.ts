@@ -1,14 +1,26 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 export interface AudioRecorderState {
   isRecording: boolean;
+  audioLevel: number;
+  waveformBars: number[];
+  error: string | null;
   startRecording: () => Promise<void>;
   stopRecording: () => Promise<Blob | null>;
-  error: string | null;
 }
 
-export const useAudioRecorder = (): AudioRecorderState => {
+export interface UseAudioRecorderOptions {
+  autoStopOnSilence?: boolean;
+  silenceThresholdMs?: number;
+  onAutoStop?: (blob: Blob) => void;
+}
+
+export const useAudioRecorder = (options: UseAudioRecorderOptions = {}): AudioRecorderState => {
+  const { autoStopOnSilence = false, silenceThresholdMs = 1200, onAutoStop } = options;
+
   const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [audioLevel, setAudioLevel] = useState<number>(0);
+  const [waveformBars, setWaveformBars] = useState<number[]>([0.1, 0.1, 0.1, 0.1, 0.1]);
   const [error, setError] = useState<string | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -16,10 +28,51 @@ export const useAudioRecorder = (): AudioRecorderState => {
   const streamRef = useRef<MediaStream | null>(null);
   const startTimeRef = useRef<number>(0);
 
+  // Web Audio Analyser references
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const silenceTimerRef = useRef<number | null>(null);
+  const hasSpokenRef = useRef<boolean>(false);
+
+  // Cleanup helper
+  const cleanupAudioGraph = useCallback(() => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
+    if (audioContextRef.current && audioContextRef.current.state !== "closed") {
+      audioContextRef.current.close().catch(() => {});
+      audioContextRef.current = null;
+    }
+
+    analyserRef.current = null;
+    setAudioLevel(0);
+    setWaveformBars([0.1, 0.1, 0.1, 0.1, 0.1]);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      cleanupAudioGraph();
+    };
+  }, [cleanupAudioGraph]);
+
   const startRecording = useCallback(async () => {
     setError(null);
     audioChunksRef.current = [];
     startTimeRef.current = Date.now();
+    hasSpokenRef.current = false;
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -28,11 +81,24 @@ export const useAudioRecorder = (): AudioRecorderState => {
           sampleRate: 16000,
           echoCancellation: true,
           noiseSuppression: true,
+          autoGainControl: true,
         },
       });
       streamRef.current = stream;
 
-      // Select most compatible web audio container
+      // Set up Web Audio Analyser for live visualizer & VAD
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const audioCtx = new AudioCtx();
+      audioContextRef.current = audioCtx;
+
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+      analyser.smoothingTimeConstant = 0.6;
+      source.connect(analyser);
+      analyserRef.current = analyser;
+
+      // Container mime-type selection
       const candidates = [
         "audio/webm;codecs=opus",
         "audio/webm",
@@ -58,15 +124,70 @@ export const useAudioRecorder = (): AudioRecorderState => {
         }
       };
 
-      // Start recording without timeslices so the browser outputs a single complete container on stop
       recorder.start();
       setIsRecording(true);
+
+      // Start live waveform & RMS calculation loop
+      const frequencyData = new Uint8Array(analyser.frequencyBinCount);
+      const timeData = new Uint8Array(analyser.fftSize);
+
+      const processAudioFrame = () => {
+        if (!analyserRef.current) return;
+
+        analyserRef.current.getByteFrequencyData(frequencyData);
+        analyserRef.current.getByteTimeDomainData(timeData);
+
+        // Calculate RMS Energy
+        let sumSquares = 0;
+        for (let i = 0; i < timeData.length; i++) {
+          const normalized = (timeData[i] - 128) / 128;
+          sumSquares += normalized * normalized;
+        }
+        const rms = Math.sqrt(sumSquares / timeData.length);
+        setAudioLevel(Math.min(1, rms * 3.5));
+
+        // Sample 5 distinct frequency bands for waveform visualization
+        const bands = [
+          frequencyData[1] || 0,
+          frequencyData[3] || 0,
+          frequencyData[6] || 0,
+          frequencyData[9] || 0,
+          frequencyData[13] || 0,
+        ];
+        const normalizedBars = bands.map((val) => Math.max(0.12, Math.min(1.0, val / 200)));
+        setWaveformBars(normalizedBars);
+
+        // VAD (Voice Activity Detection): Silence threshold
+        if (rms > 0.06) {
+          hasSpokenRef.current = true;
+          if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+            silenceTimerRef.current = null;
+          }
+        } else if (hasSpokenRef.current && autoStopOnSilence) {
+          if (!silenceTimerRef.current) {
+            silenceTimerRef.current = window.setTimeout(async () => {
+              if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+                const blob = await stopRecording();
+                if (blob && onAutoStop) {
+                  onAutoStop(blob);
+                }
+              }
+            }, silenceThresholdMs);
+          }
+        }
+
+        animationFrameRef.current = requestAnimationFrame(processAudioFrame);
+      };
+
+      animationFrameRef.current = requestAnimationFrame(processAudioFrame);
     } catch (err: any) {
-      const msg = err?.message || "Failed to access microphone.";
+      const msg = err?.message || "Microphone access denied.";
       setError(msg);
       setIsRecording(false);
+      cleanupAudioGraph();
     }
-  }, []);
+  }, [autoStopOnSilence, silenceThresholdMs, onAutoStop, cleanupAudioGraph]);
 
   const stopRecording = useCallback(async (): Promise<Blob | null> => {
     return new Promise((resolve) => {
@@ -75,6 +196,7 @@ export const useAudioRecorder = (): AudioRecorderState => {
 
       if (!recorder || recorder.state === "inactive") {
         setIsRecording(false);
+        cleanupAudioGraph();
         resolve(null);
         return;
       }
@@ -84,17 +206,12 @@ export const useAudioRecorder = (): AudioRecorderState => {
         const blob = new Blob(audioChunksRef.current, { type: mimeType });
         audioChunksRef.current = [];
 
-        // Clean up hardware tracks
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach((track) => track.stop());
-          streamRef.current = null;
-        }
-
+        cleanupAudioGraph();
         setIsRecording(false);
 
-        // Guard against accidental micro-taps (< 400ms or empty payload)
-        if (duration < 400 || blob.size < 1200) {
-          setError("Press and hold the button while speaking.");
+        // Guard against micro-taps (< 350ms or empty payload)
+        if (duration < 350 || blob.size < 1000) {
+          setError("Hold the mic button while speaking.");
           resolve(null);
           return;
         }
@@ -104,12 +221,14 @@ export const useAudioRecorder = (): AudioRecorderState => {
 
       recorder.stop();
     });
-  }, []);
+  }, [cleanupAudioGraph]);
 
   return {
     isRecording,
+    audioLevel,
+    waveformBars,
+    error,
     startRecording,
     stopRecording,
-    error,
   };
 };
