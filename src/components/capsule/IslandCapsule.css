@@ -1,0 +1,292 @@
+/* Rufus Dynamic Island Capsule */
+
+.rufus-capsule-overlay {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Base Glassmorphism Capsule Pill */
+.island-capsule {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(10, 12, 18, 0.94);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 
+    0 12px 36px rgba(0, 0, 0, 0.65),
+    0 0 16px rgba(56, 189, 248, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Active State: 420x48 px */
+.island-capsule.mode-active {
+  width: 420px;
+  height: 48px;
+  border-radius: 24px;
+  padding: 0 12px;
+  gap: 10px;
+}
+
+/* Dormant State: 140x36 px */
+.island-capsule.mode-dormant {
+  width: 140px;
+  height: 36px;
+  border-radius: 18px;
+  padding: 0 10px;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  border-color: rgba(56, 189, 248, 0.2);
+}
+
+.island-capsule.mode-dormant:hover {
+  background: rgba(15, 20, 30, 0.98);
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 
+    0 12px 36px rgba(0, 0, 0, 0.75),
+    0 0 20px rgba(56, 189, 248, 0.25);
+}
+
+.capsule-drag-handle {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  user-select: none;
+}
+
+.capsule-drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Orbiting Glow Ring for Processing State */
+.island-capsule.state-processing::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 26px;
+  background: conic-gradient(from 0deg, transparent 60%, rgba(56, 189, 248, 0.8) 85%, #00e5ff 100%);
+  animation: capsule-orbit 2s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.island-capsule.state-processing::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 23px;
+  background: rgba(10, 12, 18, 0.95);
+  z-index: 1;
+  pointer-events: none;
+}
+
+@keyframes capsule-orbit {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Left Section: OLED Twin Eyes */
+.capsule-left {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.capsule-eyes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  background: rgba(4, 6, 10, 0.85);
+  border-radius: 12px;
+  border: 1px solid rgba(56, 189, 248, 0.15);
+}
+
+.capsule-eye {
+  width: 10px;
+  height: 14px;
+  background: #00e5ff;
+  border-radius: 4px;
+  box-shadow: 0 0 8px #00e5ff, 0 0 14px rgba(0, 229, 255, 0.4);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Eye Animations */
+.state-idle .capsule-eye {
+  animation: eye-blink 4.5s infinite;
+}
+
+.state-listening .capsule-eye {
+  height: 16px;
+  background: #38bdf8;
+  box-shadow: 0 0 10px #38bdf8, 0 0 18px rgba(56, 189, 248, 0.6);
+}
+
+.state-processing .capsule-eye {
+  height: 8px;
+  background: #818cf8;
+  box-shadow: 0 0 8px #818cf8;
+  animation: eye-scan 1.2s infinite alternate ease-in-out;
+}
+
+.state-responding .capsule-eye {
+  border-radius: 6px 6px 2px 2px;
+  height: 12px;
+  animation: eye-bounce 0.6s infinite alternate;
+}
+
+.mode-dormant .capsule-eye {
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(0, 229, 255, 0.6);
+  box-shadow: 0 0 4px rgba(0, 229, 255, 0.3);
+  animation: dormant-breath 3s infinite ease-in-out;
+}
+
+@keyframes eye-blink {
+  0%, 93%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+
+@keyframes eye-scan {
+  0% { transform: translateX(-2px); }
+  100% { transform: translateX(2px); }
+}
+
+@keyframes eye-bounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-2px); }
+}
+
+@keyframes dormant-breath {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.85; }
+}
+
+/* Center Section */
+.capsule-center {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.capsule-status-text {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+}
+
+.capsule-status-text.active {
+  color: #f1f5f9;
+}
+
+.capsule-status-text.shimmer {
+  background: linear-gradient(90deg, #94a3b8 0%, #38bdf8 50%, #94a3b8 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: text-shimmer 2s infinite linear;
+}
+
+@keyframes text-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Mini Audio Bars */
+.capsule-audio-bars {
+  display: flex;
+  align-items: center;
+  gap: 2.5px;
+  height: 18px;
+}
+
+.capsule-bar {
+  width: 2.5px;
+  background: #38bdf8;
+  border-radius: 1.5px;
+  min-height: 4px;
+  box-shadow: 0 0 4px rgba(56, 189, 248, 0.4);
+  transition: height 0.08s ease;
+}
+
+/* Right Section: Action Controls */
+.capsule-right {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.capsule-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.capsule-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  transform: scale(1.06);
+}
+
+.capsule-btn:active {
+  transform: scale(0.96);
+}
+
+.capsule-btn.active {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+.dormant-label {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}

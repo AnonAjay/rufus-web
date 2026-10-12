@@ -12,13 +12,28 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "Rufus Desktop Assistant",
         "width": 1080,
         "height": 720,
-        "minWidth": 360,
-        "minHeight": 400,
+        "minWidth": 600,
+        "minHeight": 450,
         "decorations": false,
-        "alwaysOnTop": false
+        "alwaysOnTop": false,
+        "transparent": false
+      },
+      {
+        "label": "capsule",
+        "title": "Rufus Island",
+        "url": "index.html?view=capsule",
+        "width": 420,
+        "height": 48,
+        "minWidth": 120,
+        "minHeight": 36,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "transparent": true,
+        "visible": false
       }
     ],
     "security": {

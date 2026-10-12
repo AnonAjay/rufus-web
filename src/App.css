@@ -38,6 +38,19 @@ body {
   user-select: none;
 }
 
+body.capsule-active {
+  background: transparent !important;
+}
+
+body.capsule-active #root {
+  background: transparent !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+}
+
 .rufus-window-shell {
   display: flex;
   flex-direction: column;

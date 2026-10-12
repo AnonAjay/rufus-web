@@ -180,7 +180,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                 }}
               >
                 <MiniModeIcon />
-                <span>{isMiniMode ? "Exit Mini Mode" : "Open Mini Mode"}</span>
+                <span>{isMiniMode ? "Expand to Workstation" : "Floating Mini Capsule"}</span>
               </button>
 
               <button

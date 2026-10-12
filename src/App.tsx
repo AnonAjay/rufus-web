@@ -8,11 +8,9 @@ import { CommandBar } from "./components/chat/CommandBar";
 import { AudioWaveform } from "./components/common/AudioWaveform";
 import { useAgentChat } from "./hooks/useAgentChat";
 import { useAudioRecorder } from "./hooks/useAudioRecorder";
-import { useTauriWindow } from "./hooks/useTauriWindow";
 import "./App.css";
 
 export const App: React.FC = () => {
-  const { isMiniMode } = useTauriWindow();
   const { messages, isLoading, sendMessage, sendVoiceMessage } = useAgentChat();
   const { isRecording, waveformBars, startRecording, stopRecording } = useAudioRecorder();
   const feedEndRef = useRef<HTMLDivElement>(null);
@@ -46,12 +44,18 @@ export const App: React.FC = () => {
     return "idle";
   };
 
-  const getEyeSubtitle = (): string => {
-    if (isLoading) return "Executing & reasoning...";
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage?.actions && lastMessage.actions.length > 0) return "Action complete!";
-    return "Rufus is ready";
-  };
+  // Cross-window synchronization with Island Capsule
+  useEffect(() => {
+    const channel = new BroadcastChannel("rufus_agent_sync");
+    channel.onmessage = (event) => {
+      if (event.data?.type === "VOICE_ACTION_TRIGGERED") {
+        // Voice action triggered from mini capsule
+      }
+    };
+    return () => {
+      channel.close();
+    };
+  }, []);
 
   return (
     <div className="rufus-window-shell">
@@ -66,23 +70,8 @@ export const App: React.FC = () => {
         unreadNotificationsCount={pendingApprovals.length}
       />
 
-      {isMiniMode ? (
-        /* Compact Mini Companion Widget */
-        <div className="rufus-mini-container">
-          <div className="rufus-mini-face">
-            <RufusFace state={getEyeState()} subtitle={getEyeSubtitle()} />
-          </div>
-          <div className="rufus-mini-footer">
-            <CommandBar
-              onSendMessage={sendMessage}
-              onSendVoice={sendVoiceMessage}
-              isLoading={isLoading}
-            />
-          </div>
-        </div>
-      ) : (
-        /* Full Workspace Layout with Left Sidebar */
-        <div className="rufus-workspace-layout">
+      {/* Full Workspace Layout with Left Sidebar */}
+      <div className="rufus-workspace-layout">
           <Sidebar
             activeTab={activeTab}
             onSelectTab={setActiveTab}
@@ -314,9 +303,8 @@ export const App: React.FC = () => {
             </div>
           </main>
         </div>
-      )}
-    </div>
-  );
-};
+      </div>
+    );
+  };
 
 export default App;
