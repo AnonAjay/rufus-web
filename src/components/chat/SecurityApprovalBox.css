@@ -1,0 +1,260 @@
+/* Security Guardrail / Action Authorization Box */
+
+.security-box-asking {
+  background: linear-gradient(145deg, #16213E 0%, #1A1A2E 100%);
+  border: 1px solid #0F3460;
+  border-left: 3px solid #00e5ff;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin: 10px 0;
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.45),
+    0 0 16px rgba(0, 229, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: sec-pop 0.25s ease-out;
+}
+
+@keyframes sec-pop {
+  0% { transform: translateY(6px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.security-box-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.security-box-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.security-shield-icon {
+  font-size: 1.25rem;
+  filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.4));
+}
+
+.security-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.security-header-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #00e5ff;
+  font-weight: 700;
+}
+
+.security-task-title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  letter-spacing: -0.01em;
+}
+
+.security-edit-input {
+  background: #0a0b10;
+  border: 1px solid #00e5ff;
+  border-radius: 6px;
+  padding: 4px 8px;
+  color: #ffffff;
+  font-size: 0.88rem;
+  outline: none;
+}
+
+/* Timer Pill */
+.security-timer-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 52, 96, 0.5);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-family: monospace;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.timer-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00e5ff;
+  box-shadow: 0 0 6px #00e5ff;
+}
+
+.security-timer-pill.urgent {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+}
+
+.security-timer-pill.urgent .timer-dot {
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+  animation: urgent-blink 0.8s infinite;
+}
+
+@keyframes urgent-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* Body */
+.security-box-body {
+  background: rgba(10, 11, 16, 0.5);
+  border: 1px solid rgba(15, 52, 96, 0.4);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.security-risk-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #64748b;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.security-risk-text {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  color: #cbd5e1;
+}
+
+/* Buttons */
+.security-box-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.security-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.security-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.security-btn.approve {
+  background: #00e5ff;
+  color: #0a0b10;
+  box-shadow: 0 2px 10px rgba(0, 229, 255, 0.35);
+}
+
+.security-btn.approve:hover {
+  background: #38bdf8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 229, 255, 0.5);
+}
+
+.security-btn.edit {
+  background: #0F3460;
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.security-btn.edit:hover {
+  background: #16213E;
+  color: #ffffff;
+}
+
+.security-btn.deny {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.security-btn.deny:hover {
+  background: rgba(239, 68, 68, 0.22);
+}
+
+.security-btn.save {
+  background: #10b981;
+  color: #ffffff;
+}
+
+/* State 2: Decision Sealed (Audit State) */
+.security-box-sealed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-radius: 8px;
+  margin: 6px 0;
+  font-size: 12px;
+  border: 1px solid;
+  animation: seal-fade 0.3s ease;
+}
+
+@keyframes seal-fade {
+  0% { opacity: 0; transform: scale(0.98); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.security-box-sealed.approved {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #6ee7b7;
+}
+
+.security-box-sealed.denied {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.sealed-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sealed-icon {
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.sealed-status-badge {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sealed-task-name {
+  font-weight: 500;
+  color: #f1f5f9;
+}
+
+.sealed-timestamp {
+  font-size: 10px;
+  font-family: monospace;
+  opacity: 0.65;
+}

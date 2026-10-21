@@ -1,0 +1,259 @@
+/* Chat Rows & Rufus Response Dialog Box */
+
+.chat-row {
+  display: flex;
+  width: 100%;
+  margin: 8px 0;
+  animation: row-fade-in 0.25s ease-out;
+}
+
+@keyframes row-fade-in {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* User Message Row */
+.user-row {
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.user-bubble-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  max-width: 72%;
+}
+
+.user-bubble-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.user-sender-label {
+  font-weight: 700;
+  color: #38bdf8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 10px;
+}
+
+.user-timestamp {
+  color: rgba(255, 255, 255, 0.35);
+  font-family: monospace;
+  font-size: 10px;
+}
+
+.user-bubble-text {
+  background: linear-gradient(135deg, #0F3460 0%, #16213E 100%);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  border-radius: 14px 4px 14px 14px;
+  padding: 12px 16px;
+  color: #f8fafc;
+  font-size: 0.94rem;
+  line-height: 1.5;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  word-break: break-word;
+}
+
+.user-avatar-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #16213E;
+  border: 1px solid #0F3460;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  margin-top: 14px;
+}
+
+.user-avatar-glyph {
+  font-size: 14px;
+}
+
+/* Rufus Response Dialog Box */
+.rufus-row {
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* Left Column: Rufus Logo & Barely Visible Time Beneath */
+.rufus-left-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.rufus-dialog-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #090a0f;
+  border: 1px solid #0F3460;
+  box-shadow: 
+    0 4px 14px rgba(0, 0, 0, 0.6),
+    0 0 10px rgba(0, 229, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.rufus-dialog-logo:hover {
+  transform: scale(1.05);
+  border-color: rgba(0, 229, 255, 0.4);
+}
+
+.rufus-mini-oled {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mini-eye {
+  width: 6px;
+  height: 10px;
+  background: #00e5ff;
+  border-radius: 2px;
+  box-shadow: 0 0 6px #00e5ff;
+}
+
+.mini-eye.left {
+  animation: eye-subtle 4s infinite ease-in-out;
+}
+
+.mini-eye.right {
+  animation: eye-subtle 4s infinite ease-in-out;
+}
+
+@keyframes eye-subtle {
+  0%, 93%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.1); }
+}
+
+.rufus-logo-time {
+  font-size: 9.5px;
+  font-family: monospace;
+  color: rgba(255, 255, 255, 0.28);
+  letter-spacing: -0.02em;
+  user-select: none;
+}
+
+/* Main Dialog Box */
+.rufus-dialog-box {
+  flex: 1;
+  max-width: 82%;
+  background: linear-gradient(145deg, #16213E 0%, #1A1A2E 100%);
+  border: 1px solid #0F3460;
+  border-radius: 14px;
+  padding: 12px 18px 10px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 
+    0 6px 24px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(0, 229, 255, 0.12);
+  transition: border-color 0.2s ease;
+}
+
+.rufus-dialog-box:hover {
+  border-color: rgba(0, 229, 255, 0.3);
+}
+
+/* Top Header Bar */
+.rufus-dialog-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(15, 52, 96, 0.5);
+  padding-bottom: 6px;
+}
+
+.rufus-dialog-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #00e5ff;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Action tag on top right */
+.rufus-dialog-action {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: monospace;
+  font-size: 11px;
+  background: rgba(10, 11, 16, 0.45);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(15, 52, 96, 0.6);
+}
+
+.action-prefix {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.action-value {
+  color: #00e5ff;
+  font-weight: 600;
+}
+
+/* Response Body */
+.rufus-dialog-body {
+  font-size: 0.94rem;
+  line-height: 1.55;
+  color: #e2e8f0;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.rufus-dialog-security-wrapper {
+  margin-top: 4px;
+}
+
+/* Bottom Footer Bar */
+.rufus-dialog-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 4px;
+}
+
+.rufus-model-crumb {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.25);
+  font-family: monospace;
+}
+
+/* Accuracy (super small text barely visible) */
+.rufus-dialog-accuracy {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: monospace;
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.22);
+  user-select: none;
+}
+
+.accuracy-label {
+  letter-spacing: -0.01em;
+}
+
+.accuracy-value {
+  font-weight: 600;
+  color: rgba(0, 229, 255, 0.35);
+}

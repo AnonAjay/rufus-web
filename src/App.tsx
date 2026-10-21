@@ -4,6 +4,8 @@ import { Sidebar, NavTab } from "./components/layout/Sidebar";
 import { ViewHeader } from "./components/layout/ViewHeader";
 import { RufusFace, EyeState } from "./components/robot/RufusFace";
 import { ChatBubble } from "./components/chat/ChatBubble";
+import { HeroWakeup } from "./components/chat/HeroWakeup";
+import { ThinkingIndicator } from "./components/chat/ThinkingIndicator";
 import { CommandBar } from "./components/chat/CommandBar";
 import { AudioWaveform } from "./components/common/AudioWaveform";
 import { useAgentChat } from "./hooks/useAgentChat";
@@ -110,43 +112,24 @@ export const App: React.FC = () => {
         />
 
         <main className="workspace-main-area">
-          <ViewHeader activeTab={activeTab} isLive={true} />
+          {activeTab !== "assistant" && <ViewHeader activeTab={activeTab} isLive={true} />}
 
           <div className="workspace-content-pane">
             {/* TAB 1: ASSISTANT (MAIN CHAT) */}
             {activeTab === "assistant" && (
               <>
-                <div className="system-notice-card">
-                  <div className="system-notice-left">
-                    <span className="system-notice-icon">⚡</span>
-                    <div>
-                      <span className="system-notice-title">Engine active:</span>
-                      <span className="system-notice-text">
-                        Local Ollama LLM • DAG Topology Active • Session: {sessionId}
-                      </span>
-                    </div>
-                  </div>
-                  <span className="system-notice-time">Ready</span>
-                </div>
-
-                <div className="chat-date-separator">
-                  Today • Rufus companion session active
-                </div>
-
                 <div className="chat-scroll-container">
-                  {messages.map((msg) => (
-                    <ChatBubble key={msg.id} message={msg} />
-                  ))}
-                  {isLoading && (
-                    <div className="chat-bubble-row rufus">
-                      <div className="chat-bubble rufus">
-                        <div className="chat-sender-name">Rufus</div>
-                        <div className="chat-text">
-                          <span className="spinner" style={{ display: "inline-block", marginRight: 8 }} />
-                          Thinking and executing action...
-                        </div>
-                      </div>
-                    </div>
+                  {messages.filter((msg) => msg.id !== "initial-welcome" && !msg.text.includes("Woof! I'm Rufus")).length === 0 ? (
+                    <HeroWakeup />
+                  ) : (
+                    <>
+                      {messages
+                        .filter((msg) => msg.id !== "initial-welcome" && !msg.text.includes("Woof! I'm Rufus"))
+                        .map((msg) => (
+                          <ChatBubble key={msg.id} message={msg} />
+                        ))}
+                      {isLoading && <ThinkingIndicator />}
+                    </>
                   )}
                   <div ref={feedEndRef} />
                 </div>

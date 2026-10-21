@@ -5,14 +5,7 @@ const API_BASE_URL = "http://127.0.0.1:8000";
 
 export const useAgentChat = (initialSessionId: string = "rufus-desktop-session") => {
   const [sessionId] = useState<string>(initialSessionId);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "initial-welcome",
-      sender: "rufus",
-      text: "Woof! I'm Rufus, your desktop companion. Ask me to open apps, search terms, or control Spotify.",
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 

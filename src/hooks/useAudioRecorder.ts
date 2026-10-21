@@ -20,7 +20,7 @@ export const useAudioRecorder = (options: UseAudioRecorderOptions = {}): AudioRe
 
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [audioLevel, setAudioLevel] = useState<number>(0);
-  const [waveformBars, setWaveformBars] = useState<number[]>([0.1, 0.1, 0.1, 0.1, 0.1]);
+  const [waveformBars, setWaveformBars] = useState<number[]>(Array(24).fill(0.12));
   const [error, setError] = useState<string | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -59,7 +59,7 @@ export const useAudioRecorder = (options: UseAudioRecorderOptions = {}): AudioRe
 
     analyserRef.current = null;
     setAudioLevel(0);
-    setWaveformBars([0.1, 0.1, 0.1, 0.1, 0.1]);
+    setWaveformBars(Array(24).fill(0.12));
   }, []);
 
   useEffect(() => {
@@ -93,8 +93,8 @@ export const useAudioRecorder = (options: UseAudioRecorderOptions = {}): AudioRe
 
       const source = audioCtx.createMediaStreamSource(stream);
       const analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 64;
-      analyser.smoothingTimeConstant = 0.6;
+      analyser.fftSize = 128;
+      analyser.smoothingTimeConstant = 0.5;
       source.connect(analyser);
       analyserRef.current = analyser;
 
@@ -146,16 +146,20 @@ export const useAudioRecorder = (options: UseAudioRecorderOptions = {}): AudioRe
         const rms = Math.sqrt(sumSquares / timeData.length);
         setAudioLevel(Math.min(1, rms * 3.5));
 
-        // Sample 5 distinct frequency bands for waveform visualization
-        const bands = [
-          frequencyData[1] || 0,
-          frequencyData[3] || 0,
-          frequencyData[6] || 0,
-          frequencyData[9] || 0,
-          frequencyData[13] || 0,
-        ];
-        const normalizedBars = bands.map((val) => Math.max(0.12, Math.min(1.0, val / 200)));
-        setWaveformBars(normalizedBars);
+        // Sample 24 distinct frequency bands across human speech range (100Hz - ~5500Hz)
+        const numBars = 24;
+        const totalBins = analyserRef.current.frequencyBinCount; // 64
+        const maxBin = Math.min(totalBins - 1, 48);
+        const bars: number[] = [];
+
+        for (let i = 0; i < numBars; i++) {
+          const binIndex = 1 + Math.floor((i * (maxBin - 1)) / (numBars - 1));
+          const val = frequencyData[binIndex] || 0;
+          // Scale dynamically with audio sensitivity
+          const normalized = Math.max(0.12, Math.min(1.0, val / 185));
+          bars.push(normalized);
+        }
+        setWaveformBars(bars);
 
         // VAD (Voice Activity Detection): Silence threshold
         if (rms > 0.06) {

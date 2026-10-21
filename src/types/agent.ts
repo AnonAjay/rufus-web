@@ -5,6 +5,14 @@ export interface ChatMessage {
   timestamp: string;
   actions?: string[];
   modelUsed?: string;
+  accuracy?: string;
+  authorization?: {
+    id: string;
+    task: string;
+    risk: string;
+    status: 'pending' | 'approved' | 'denied';
+    initialExpiresInSeconds?: number;
+  };
 }
 
 export interface AgentChatResponse {

@@ -1,0 +1,372 @@
+/* CommandBar.css - Premium Modern AI Chat Bar */
+
+.command-bar-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: linear-gradient(145deg, #16213E 0%, #1A1A2E 100%);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid #0F3460;
+  border-radius: 20px;
+  padding: 8px 12px;
+  box-shadow: 
+    0 10px 32px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(0, 229, 255, 0.14);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.command-bar-wrapper:focus-within {
+  border-color: rgba(0, 229, 255, 0.45);
+  box-shadow: 
+    0 12px 36px rgba(0, 0, 0, 0.65),
+    0 0 16px rgba(0, 229, 255, 0.15),
+    inset 0 1px 0 rgba(0, 229, 255, 0.2);
+}
+
+.command-bar-wrapper.recording-active {
+  border-color: rgba(0, 229, 255, 0.6);
+  box-shadow: 
+    0 12px 36px rgba(0, 0, 0, 0.65),
+    0 0 20px rgba(0, 229, 255, 0.25);
+}
+
+/* Form Container */
+.command-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Left: Circular Plus Attachment Button */
+.command-action-circle-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #0a0b10;
+  border: 1px solid #0F3460;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
+  outline: none;
+}
+
+.command-action-circle-btn:hover:not(:disabled) {
+  background: #16213E;
+  border-color: #00e5ff;
+  color: #00e5ff;
+  transform: translateY(-1px);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+.command-action-circle-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Plus to X rotation */
+.command-plus-btn {
+  position: relative;
+}
+
+.command-plus-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+}
+
+.command-plus-btn.open .command-plus-icon {
+  transform: rotate(45deg);
+  color: #00e5ff;
+}
+
+.command-plus-btn.open {
+  background: #16213E;
+  border-color: #00e5ff;
+}
+
+/* Attachment Popover Menu */
+.command-attach-popover {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 8px;
+  width: 250px;
+  background: rgba(22, 33, 62, 0.95);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid #0F3460;
+  border-radius: 14px;
+  padding: 8px;
+  box-shadow: 
+    0 16px 40px rgba(0, 0, 0, 0.7),
+    0 0 20px rgba(0, 229, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 100;
+  animation: popover-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popover-in {
+  0% { opacity: 0; transform: translateY(8px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.attach-option-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.attach-option-btn:hover {
+  background: rgba(15, 52, 96, 0.5);
+  color: #00e5ff;
+  transform: translateX(2px);
+}
+
+.attach-icon {
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+}
+
+.attach-title {
+  display: flex;
+  flex-direction: column;
+}
+
+.attach-label {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.attach-desc {
+  font-size: 10px;
+  color: #64748b;
+}
+
+/* Center Segment: State 1 (Text Bar) */
+.command-input-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.command-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #f8fafc;
+  padding: 8px 6px;
+  font-size: 0.94rem;
+  outline: none;
+  font-family: inherit;
+}
+
+.command-input::placeholder {
+  color: #64748b;
+  font-weight: 400;
+}
+
+/* Center Segment: State 2 (Voice Bar Waveform) */
+.command-voice-display {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(10, 11, 16, 0.6);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  border-radius: 12px;
+  padding: 6px 14px;
+  height: 38px;
+  animation: voice-bar-in 0.25s ease-out;
+}
+
+@keyframes voice-bar-in {
+  0% { opacity: 0; transform: scaleY(0.9); }
+  100% { opacity: 1; transform: scaleY(1); }
+}
+
+.voice-live-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.voice-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00e5ff;
+  box-shadow: 0 0 10px #00e5ff;
+  animation: pulse-cyan 1s infinite alternate ease-in-out;
+}
+
+@keyframes pulse-cyan {
+  0% { opacity: 0.4; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1.15); box-shadow: 0 0 14px #00e5ff; }
+}
+
+.voice-time-label {
+  font-size: 11px;
+  font-family: monospace;
+  color: #00e5ff;
+  font-weight: 700;
+}
+
+/* Fluid Audio Waveform Stream */
+.voice-waveform-stream {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.voice-wave-bar {
+  width: 3.5px;
+  background: linear-gradient(180deg, #00e5ff 0%, #38bdf8 100%);
+  border-radius: 2px;
+  box-shadow: 0 0 6px rgba(0, 229, 255, 0.4);
+  transition: height 0.08s ease;
+  min-height: 4px;
+}
+
+.voice-cancel-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  color: #94a3b8;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 10px;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.voice-cancel-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+/* Right: Cluster of 3 Circular Buttons (Screen, Voice, Send) */
+.command-right-cluster {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+/* Screen Inspection Button */
+.btn-screen:hover:not(:disabled) {
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+/* Voice Mic Button */
+.btn-voice {
+  position: relative;
+}
+
+.btn-voice.recording {
+  background: #00e5ff;
+  border-color: #00e5ff;
+  color: #0a0b10;
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.6);
+  animation: btn-voice-throb 1.2s infinite alternate;
+}
+
+@keyframes btn-voice-throb {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.08); }
+}
+
+/* Circular Send Button */
+.btn-send {
+  background: #00e5ff;
+  border-color: #00e5ff;
+  color: #0a0b10;
+  box-shadow: 0 2px 10px rgba(0, 229, 255, 0.35);
+}
+
+.btn-send:hover:not(:disabled) {
+  background: #38bdf8;
+  border-color: #38bdf8;
+  color: #0a0b10;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 229, 255, 0.5);
+}
+
+.btn-send:disabled {
+  background: #0a0b10;
+  border-color: #0F3460;
+  color: #475569;
+  box-shadow: none;
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Attachment Chips Row (if files attached) */
+.command-attachments-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-bottom: 1px solid rgba(15, 52, 96, 0.4);
+}
+
+.attach-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #0a0b10;
+  border: 1px solid #0F3460;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  color: #cbd5e1;
+}
+
+.chip-remove-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0;
+  font-size: 11px;
+}
+
+.chip-remove-btn:hover {
+  color: #ef4444;
+}

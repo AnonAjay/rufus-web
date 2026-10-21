@@ -1,0 +1,199 @@
+/* Hero Wakeup Center Piece for Empty Canvas */
+
+.hero-wakeup-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  padding: 40px 20px;
+  animation: hero-fade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.hero-wakeup-container.fading-out {
+  opacity: 0;
+  transform: scale(0.96) translateY(-16px);
+  pointer-events: none;
+}
+
+@keyframes hero-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Face Frame & Glowing Ring */
+.hero-face-frame {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.hero-face-glow-ring {
+  position: absolute;
+  width: 160px;
+  height: 94px;
+  border-radius: 24px;
+  background: radial-gradient(circle, rgba(0, 229, 255, 0.22) 0%, rgba(15, 52, 96, 0.05) 70%, transparent 100%);
+  filter: blur(14px);
+  z-index: 0;
+  transition: all 0.8s ease;
+}
+
+.hero-face-frame.awake .hero-face-glow-ring {
+  background: radial-gradient(circle, rgba(0, 229, 255, 0.35) 0%, rgba(15, 52, 96, 0.15) 70%, transparent 100%);
+  filter: blur(18px);
+}
+
+.hero-oled-screen {
+  position: relative;
+  z-index: 1;
+  width: 136px;
+  height: 72px;
+  background: #090a0f;
+  border: 2px solid #0F3460;
+  border-radius: 20px;
+  box-shadow: 
+    0 12px 32px rgba(0, 0, 0, 0.6),
+    inset 0 0 16px rgba(0, 0, 0, 0.9),
+    0 0 16px rgba(0, 229, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  transition: border-color 0.5s ease;
+}
+
+.hero-face-frame.awake .hero-oled-screen {
+  border-color: rgba(0, 229, 255, 0.45);
+}
+
+/* OLED Twin Eyes */
+.hero-eye {
+  width: 28px;
+  height: 38px;
+  background: #00e5ff;
+  border-radius: 10px;
+  box-shadow: 
+    0 0 16px #00e5ff,
+    0 0 28px rgba(0, 229, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Wake-up Sequence States */
+.hero-face-frame.sleeping .hero-eye {
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(0, 229, 255, 0.45);
+  box-shadow: 0 0 6px rgba(0, 229, 255, 0.3);
+  transform: scaleY(0.1);
+}
+
+.hero-face-frame.waking .hero-eye {
+  animation: wake-up-blink 0.75s ease-in-out forwards;
+}
+
+.hero-face-frame.awake .hero-eye {
+  height: 38px;
+  animation: natural-blink 4.2s infinite ease-in-out;
+}
+
+@keyframes wake-up-blink {
+  0% {
+    transform: scaleY(0.1);
+    opacity: 0.5;
+  }
+  30% {
+    transform: scaleY(0.85);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scaleY(0.1);
+    opacity: 0.7;
+  }
+  75% {
+    transform: scaleY(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes natural-blink {
+  0%, 92%, 100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.08);
+  }
+  98% {
+    transform: scaleY(1);
+  }
+}
+
+/* Pupil */
+.hero-pupil {
+  width: 10px;
+  height: 14px;
+  background: rgba(9, 10, 15, 0.3);
+  border-radius: 4px;
+}
+
+/* Text Wrapper */
+.hero-text-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 520px;
+}
+
+.hero-greeting-text {
+  margin: 0 0 10px 0;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #f8fafc;
+  min-height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-cursor {
+  display: inline-block;
+  margin-left: 3px;
+  color: #00e5ff;
+  font-weight: 300;
+  animation: cursor-blink 0.8s infinite;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.hero-subtext {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  font-weight: 400;
+}

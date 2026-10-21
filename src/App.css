@@ -1,17 +1,19 @@
 :root {
-  --bg-primary: #0a0d14;
-  --bg-secondary: #111726;
-  --bg-card: rgba(18, 24, 38, 0.75);
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-glow: rgba(56, 189, 248, 0.3);
+  --bg-primary: #0a0b10;
+  --bg-secondary: #1A1A2E;
+  --bg-surface: #16213E;
+  --bg-accent: #0F3460;
+  --bg-card: rgba(22, 33, 62, 0.88);
+  --border-subtle: rgba(15, 52, 96, 0.65);
+  --border-glow: rgba(0, 229, 255, 0.4);
   
-  --text-main: #f3f4f6;
-  --text-muted: #9ca3af;
-  --text-dim: #6b7280;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
 
-  --accent-blue: #38bdf8;
+  --accent-blue: #00e5ff;
   --accent-purple: #818cf8;
-  --accent-cyan: #22d3ee;
+  --accent-cyan: #00e5ff;
   
   --status-online: #10b981;
   --status-busy: #f59e0b;
@@ -32,7 +34,7 @@
 body {
   margin: 0;
   padding: 0;
-  background: #090b0e;
+  background: #0a0b10;
   min-height: 100vh;
   overflow: hidden;
   user-select: none;
@@ -57,7 +59,7 @@ body.capsule-active #root {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  background: radial-gradient(circle at 50% 0%, #111622 0%, #080a0e 85%);
+  background: radial-gradient(circle at 50% 0%, #16213E 0%, #1A1A2E 50%, #0a0b10 100%);
 }
 
 .rufus-workspace-layout {
@@ -66,7 +68,7 @@ body.capsule-active #root {
   height: calc(100vh - var(--titlebar-height, 42px));
   width: 100vw;
   overflow: hidden;
-  background: #090b0e;
+  background: #0a0b10;
 }
 
 .workspace-main-area {
@@ -75,7 +77,7 @@ body.capsule-active #root {
   flex: 1;
   height: 100%;
   overflow: hidden;
-  background: radial-gradient(circle at 40% 10%, #10141f 0%, #07090d 90%);
+  background: radial-gradient(circle at 45% 15%, #16213E 0%, #1A1A2E 65%, #0a0b10 100%);
 }
 
 .workspace-content-pane {
@@ -513,11 +515,14 @@ body.capsule-active #root {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--border-subtle);
+  background: linear-gradient(145deg, #16213E 0%, #1A1A2E 100%);
+  backdrop-filter: blur(20px);
+  border: 1px solid #0F3460;
   border-radius: 16px;
   padding: 12px 16px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(0, 229, 255, 0.12);
 }
 
 .quick-commands-row {
@@ -544,9 +549,9 @@ body.capsule-active #root {
 }
 
 .quick-cmd-chip:hover:not(:disabled) {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: var(--border-glow);
-  color: var(--accent-blue);
+  background: rgba(0, 229, 255, 0.15);
+  border-color: #00e5ff;
+  color: #00e5ff;
 }
 
 .command-form {
@@ -556,24 +561,24 @@ body.capsule-active #root {
 
 .command-input {
   flex: 1;
-  background: rgba(10, 15, 25, 0.75);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-main);
+  background: #0a0b10;
+  border: 1px solid #0F3460;
+  color: #f8fafc;
   padding: 12px 16px;
   border-radius: 12px;
   font-size: 0.95rem;
   outline: none;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .command-input:focus {
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+  border-color: #00e5ff;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
 }
 
 .command-submit-btn {
-  background: linear-gradient(135deg, #0284c7, #2563eb);
-  border: none;
+  background: linear-gradient(135deg, #0F3460, #0284c7);
+  border: 1px solid rgba(0, 229, 255, 0.4);
   color: #ffffff;
   padding: 10px 20px;
   border-radius: 12px;
