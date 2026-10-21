@@ -1,6 +1,7 @@
 import React from "react";
 import { ChatMessage } from "../../types/agent";
 import { SecurityApprovalBox } from "./SecurityApprovalBox";
+import { RufusEyesLogo } from "../layout/TitleBarIcons";
 import "./ChatBubble.css";
 
 export interface ChatBubbleProps {
@@ -41,10 +42,7 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
       {/* Left Column: Rufus Logo & Barely Visible Timestamp Beneath */}
       <div className="rufus-left-col">
         <div className="rufus-dialog-logo" title="Rufus System Core">
-          <div className="rufus-mini-oled">
-            <div className="mini-eye left" />
-            <div className="mini-eye right" />
-          </div>
+          <RufusEyesLogo size={14} glow={true} animated={true} />
         </div>
         <span className="rufus-logo-time" title="Response Generation Time">
           {message.timestamp}

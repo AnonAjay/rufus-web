@@ -1,6 +1,10 @@
 import React from "react";
 
-export const RufusEyesLogo: React.FC<{ size?: number; glow?: boolean }> = ({ size = 20, glow = true }) => (
+export const RufusEyesLogo: React.FC<{ size?: number; glow?: boolean; animated?: boolean }> = ({
+  size = 20,
+  glow = true,
+  animated = true,
+}) => (
   <svg
     width={size * 1.6}
     height={size}
@@ -8,14 +12,19 @@ export const RufusEyesLogo: React.FC<{ size?: number; glow?: boolean }> = ({ siz
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     style={{ filter: glow ? "drop-shadow(0 0 6px rgba(0, 229, 255, 0.6))" : "none" }}
+    className={animated ? "rufus-eyes-svg animated" : "rufus-eyes-svg"}
   >
     {/* Left Eye */}
-    <rect x="2" y="3" width="11" height="14" rx="4" fill="#00E5FF" />
-    <rect x="5" y="6" width="5" height="8" rx="2" fill="#E0F7FA" />
+    <g className="rufus-eye-group">
+      <rect x="2" y="3" width="11" height="14" rx="4" fill="#00E5FF" />
+      <rect x="5.5" y="6" width="4" height="8" rx="2" fill="#E0F7FA" opacity="0.95" />
+    </g>
 
     {/* Right Eye */}
-    <rect x="19" y="3" width="11" height="14" rx="4" fill="#00E5FF" />
-    <rect x="22" y="6" width="5" height="8" rx="2" fill="#E0F7FA" />
+    <g className="rufus-eye-group">
+      <rect x="19" y="3" width="11" height="14" rx="4" fill="#00E5FF" />
+      <rect x="22.5" y="6" width="4" height="8" rx="2" fill="#E0F7FA" opacity="0.95" />
+    </g>
   </svg>
 );
 

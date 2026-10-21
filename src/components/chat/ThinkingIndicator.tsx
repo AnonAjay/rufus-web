@@ -9,8 +9,12 @@ export const ThinkingIndicator: React.FC = () => {
         <div className="thinking-orbit-ring" />
         <div className="thinking-avatar-inner">
           <div className="thinking-oled-screen">
-            <div className="thinking-eye left" />
-            <div className="thinking-eye right" />
+            <div className="thinking-eye left">
+              <div className="thinking-pupil" />
+            </div>
+            <div className="thinking-eye right">
+              <div className="thinking-pupil" />
+            </div>
           </div>
         </div>
       </div>

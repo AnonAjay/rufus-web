@@ -96,9 +96,9 @@
 }
 
 .rufus-dialog-logo {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 35px;
+  height: 35px;
+  border-radius: 9px;
   background: #090a0f;
   border: 1px solid #0F3460;
   box-shadow: 
@@ -107,30 +107,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .rufus-dialog-logo:hover {
-  transform: scale(1.05);
-  border-color: rgba(0, 229, 255, 0.4);
-}
-
-.rufus-mini-oled {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.mini-eye {
-  width: 6px;
-  height: 10px;
-  background: #00e5ff;
-  border-radius: 2px;
-  box-shadow: 0 0 6px #00e5ff;
-}
-
-.mini-eye.left {
-  animation: eye-subtle 4s infinite ease-in-out;
+  transform: scale(1.06);
+  border-color: rgba(0, 229, 255, 0.5);
+  box-shadow: 
+    0 6px 18px rgba(0, 0, 0, 0.7),
+    0 0 14px rgba(0, 229, 255, 0.35);
 }
 
 .mini-eye.right {

@@ -21,11 +21,6 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<NavTab>("assistant");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
 
-  // Hardware / Context Toggles
-  const [isAlwaysOnMic, setIsAlwaysOnMic] = useState<boolean>(false);
-  const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
-  const [isScreenActive, setIsScreenActive] = useState<boolean>(false);
-
   // Reminders local state
   const [reminders, setReminders] = useState<Array<{ id: string; title: string; time: string; status: string }>>([
     { id: "rem-1", title: "Review LangGraph acyclic DAG invariants", time: "Tonight 23:59", status: "pending" },
@@ -93,13 +88,8 @@ export const App: React.FC = () => {
     <div className="rufus-window-shell">
       {/* Frameless Custom TitleBar */}
       <TitleBar
-        isAlwaysOnMic={isAlwaysOnMic}
-        onToggleAlwaysOnMic={() => setIsAlwaysOnMic((prev) => !prev)}
-        isCameraActive={isCameraActive}
-        onToggleCamera={() => setIsCameraActive((prev) => !prev)}
-        isScreenActive={isScreenActive}
-        onToggleScreen={() => setIsScreenActive((prev) => !prev)}
         unreadNotificationsCount={reminders.filter((r) => r.status === "pending").length}
+        onOpenNotifications={() => setActiveTab("reminders")}
       />
 
       {/* Full Workspace Layout with Left Sidebar */}

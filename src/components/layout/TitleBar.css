@@ -1,23 +1,20 @@
 /* Custom Frameless TitleBar - Rufus Desktop Assistant */
 
 :root {
-  --titlebar-height: 42px;
-  --bg-titlebar: #0d0f12;
-  --border-titlebar: rgba(255, 255, 255, 0.08);
+  --titlebar-height: 40px;
+  --bg-titlebar: #0a0b10;
+  --border-titlebar: #0F3460;
   --accent-cyan: #00e5ff;
   --accent-cyan-hover: #38bdf8;
-  --accent-cyan-glow: rgba(0, 229, 255, 0.25);
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
-  --btn-hover-bg: rgba(255, 255, 255, 0.06);
-  --btn-active-bg: rgba(0, 229, 255, 0.12);
 }
 
 .custom-titlebar {
   height: var(--titlebar-height);
-  background: var(--bg-titlebar);
-  border-bottom: 1px solid var(--border-titlebar);
+  background: linear-gradient(90deg, #0a0b10 0%, #16213E 45%, #0a0b10 100%);
+  border-bottom: 1px solid #0F3460;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -26,6 +23,7 @@
   position: relative;
   z-index: 1000;
   box-sizing: border-box;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
 }
 
 /* Draggable Left Brand Section */
@@ -47,24 +45,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.4));
 }
 
 .brand-title {
   font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.4px;
-  color: var(--text-primary);
+  letter-spacing: 0.6px;
+  color: #f8fafc;
   font-family: inherit;
 }
 
 .brand-version {
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--accent-cyan);
-  background: rgba(0, 229, 255, 0.12);
+  font-size: 10px;
+  font-weight: 700;
+  color: #00e5ff;
+  background: rgba(15, 52, 96, 0.55);
   border: 1px solid rgba(0, 229, 255, 0.3);
-  padding: 1px 5px;
+  padding: 1px 6px;
   border-radius: 4px;
+  font-family: monospace;
 }
 
 /* Center Spacer (Allows window dragging anywhere in empty space) */
@@ -81,191 +81,84 @@
   gap: 8px;
 }
 
-/* Toggle Group: Mic, Camera, Screen */
-.toggle-group {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.titlebar-toggle-btn {
+/* Utility Cluster: Notifications, Mini Mode, DND */
+.titlebar-utility-cluster {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: transparent;
-  border: 1px solid transparent;
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 6px;
+}
+
+.titlebar-pill-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(10, 11, 16, 0.6);
+  border: 1px solid rgba(15, 52, 96, 0.6);
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: all 0.15s ease-in-out;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
+  outline: none;
 }
 
-.titlebar-toggle-btn:hover {
-  background: var(--btn-hover-bg);
-  color: var(--text-primary);
+.titlebar-pill-btn:hover {
+  background: #16213E;
+  border-color: rgba(0, 229, 255, 0.5);
+  color: #00e5ff;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+  transform: translateY(-1px);
 }
 
-.titlebar-toggle-btn.active {
-  background: var(--btn-active-bg);
-  border-color: rgba(0, 229, 255, 0.35);
-  color: var(--accent-cyan);
-  box-shadow: 0 0 10px var(--accent-cyan-glow);
+.titlebar-pill-btn.quiet-active {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: #f59e0b;
+  color: #fbbf24;
 }
 
-.toggle-label {
-  line-height: 1;
-}
-
-/* Vertical Divider */
+/* Divider */
 .titlebar-divider {
   width: 1px;
   height: 18px;
-  background: rgba(255, 255, 255, 0.12);
-  margin: 0 2px;
+  background: #0F3460;
+  margin: 0 4px;
 }
 
-/* Utility Group: Bell, More Dots */
-.utility-group {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.titlebar-icon-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  background: transparent;
-  border: 1px solid transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.15s ease-in-out;
-}
-
-.titlebar-icon-btn:hover,
-.titlebar-icon-btn.open {
-  background: var(--btn-hover-bg);
-  color: var(--text-primary);
-}
-
-/* Quick Dropdown Menu */
-.titlebar-menu-dropdown {
-  position: absolute;
-  top: calc(var(--titlebar-height) + 4px);
-  right: 0;
-  width: 240px;
-  background: #13161c;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.65), 0 0 1px rgba(0, 229, 255, 0.2);
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  animation: menuFadeIn 0.12s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 2000;
-}
-
-@keyframes menuFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.menu-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-}
-
-.menu-header-avatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: rgba(0, 229, 255, 0.1);
-  border: 1px solid rgba(0, 229, 255, 0.25);
-}
-
-.menu-header-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.menu-divider {
-  height: 1px;
-  background: rgba(255, 255, 255, 0.08);
-  margin: 4px 0;
-}
-
-.menu-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 8px 10px;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  color: var(--text-secondary);
-  font-size: 12.5px;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.12s ease;
-}
-
-.menu-item:hover {
-  background: rgba(255, 255, 255, 0.07);
-  color: var(--text-primary);
-}
-
-.menu-item.quiet-active {
-  color: var(--accent-cyan);
-}
-
-/* Native Window Controls */
+/* Window Controls (Minimize, Maximize, Close) */
 .window-controls {
   display: flex;
   align-items: center;
   height: 100%;
-  margin-left: 6px;
 }
 
 .win-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 44px;
   height: 100%;
   background: transparent;
   border: none;
-  color: var(--text-muted);
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
+  transition: all 0.15s ease;
+  padding: 0;
+  outline: none;
 }
 
 .win-btn:hover {
   background: rgba(255, 255, 255, 0.08);
-  color: var(--text-primary);
+  color: #f8fafc;
 }
 
 .win-btn.win-close:hover {
-  background: #e81123;
+  background: #ef4444;
   color: #ffffff;
+}
+
+.win-btn svg {
+  width: 11px;
+  height: 11px;
 }

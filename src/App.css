@@ -31,6 +31,22 @@
   box-sizing: border-box;
 }
 
+/* Canonical Rufus Eye Blink Animation for SVG Logos */
+.rufus-eyes-svg.animated .rufus-eye-group {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: rufus-svg-blink 4.2s infinite ease-in-out;
+}
+
+@keyframes rufus-svg-blink {
+  0%, 92%, 100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.08);
+  }
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -94,6 +110,58 @@ body.capsule-active #root {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+/* App Footer Housing the 90% Command Bar */
+.app-footer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 0 16px 0;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+/* Custom Slim Scrollbar for Assistant Chat Feed */
+.chat-scroll-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chat-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(15, 52, 96, 0.8);
+  border-radius: 4px;
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  transition: all 0.2s ease;
+}
+
+.chat-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #00e5ff;
+  box-shadow: 0 0 10px #00e5ff;
+}
+
+/* Custom Slim Scrollbar for Views */
+.views-generic-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.views-generic-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.views-generic-container::-webkit-scrollbar-thumb {
+  background: rgba(15, 52, 96, 0.8);
+  border-radius: 4px;
+  border: 1px solid rgba(0, 229, 255, 0.18);
+}
+
+.views-generic-container::-webkit-scrollbar-thumb:hover {
+  background: #00e5ff;
+  box-shadow: 0 0 10px #00e5ff;
 }
 
 /* System Notice Banner (from mock) */
