@@ -2,11 +2,52 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAudioRecorder } from "../../hooks/useAudioRecorder";
 import "./CommandBar.css";
 
+export interface AIModelOption {
+  id: string;
+  name: string;
+  tag: string;
+  provider: "Local" | "Cloud";
+  badgeColor: string;
+}
+
+export const PLACEHOLDER_MODELS: AIModelOption[] = [
+  {
+    id: "llama3.2:latest",
+    name: "Llama 3.2: latest",
+    tag: "3B",
+    provider: "Local",
+    badgeColor: "#00e5ff",
+  },
+  {
+    id: "nemotron-4:340b",
+    name: "Nemotron-4 340B",
+    tag: "340B",
+    provider: "Cloud",
+    badgeColor: "#818cf8",
+  },
+  {
+    id: "llama3.1:70b",
+    name: "Meta Llama 3.1 70B",
+    tag: "70B",
+    provider: "Cloud",
+    badgeColor: "#a78bfa",
+  },
+  {
+    id: "moondream2:latest",
+    name: "Moondream 2: 1.8B",
+    tag: "Vision",
+    provider: "Local",
+    badgeColor: "#10b981",
+  },
+];
+
 export interface CommandBarProps {
   onSendMessage: (text: string) => void;
   onSendVoice: (blob: Blob) => void;
   isLoading: boolean;
   disabled?: boolean;
+  selectedModelId?: string;
+  onSelectModel?: (modelId: string) => void;
 }
 
 export const CommandBar: React.FC<CommandBarProps> = ({
@@ -14,14 +55,23 @@ export const CommandBar: React.FC<CommandBarProps> = ({
   onSendVoice,
   isLoading,
   disabled,
+  selectedModelId: externalSelectedModel,
+  onSelectModel,
 }) => {
   const [input, setInput] = useState("");
   const [isAttachOpen, setIsAttachOpen] = useState(false);
+  const [isModelOpen, setIsModelOpen] = useState(false);
+  const [localSelectedModel, setLocalSelectedModel] = useState("llama3.2:latest");
   const [attachedFiles, setAttachedFiles] = useState<Array<{ name: string; type: string }>>([]);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
 
+  const activeModelId = externalSelectedModel || localSelectedModel;
+  const activeModel = PLACEHOLDER_MODELS.find((m) => m.id === activeModelId) || PLACEHOLDER_MODELS[0];
+
   const popoverRef = useRef<HTMLDivElement>(null);
   const plusBtnRef = useRef<HTMLButtonElement>(null);
+  const modelPopoverRef = useRef<HTMLDivElement>(null);
+  const modelBtnRef = useRef<HTMLButtonElement>(null);
 
   const {
     isRecording,
@@ -45,26 +95,42 @@ export const CommandBar: React.FC<CommandBarProps> = ({
     return () => clearInterval(interval);
   }, [isRecording]);
 
-  // Click outside listener for attachment popover
+  // Click outside listener for attachment popover and model popover
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
       if (
         popoverRef.current &&
-        !popoverRef.current.contains(e.target as Node) &&
+        !popoverRef.current.contains(target) &&
         plusBtnRef.current &&
-        !plusBtnRef.current.contains(e.target as Node)
+        !plusBtnRef.current.contains(target)
       ) {
         setIsAttachOpen(false);
       }
+      if (
+        modelPopoverRef.current &&
+        !modelPopoverRef.current.contains(target) &&
+        modelBtnRef.current &&
+        !modelBtnRef.current.contains(target)
+      ) {
+        setIsModelOpen(false);
+      }
     };
 
-    if (isAttachOpen) {
+    if (isAttachOpen || isModelOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isAttachOpen]);
+  }, [isAttachOpen, isModelOpen]);
+
+  // Model selection handler
+  const handleSelectModel = (modelId: string) => {
+    setLocalSelectedModel(modelId);
+    onSelectModel?.(modelId);
+    setIsModelOpen(false);
+  };
 
   // Text submit handler
   const handleTextSubmit = (e?: React.FormEvent) => {
@@ -114,12 +180,6 @@ export const CommandBar: React.FC<CommandBarProps> = ({
   const handleCancelVoice = async () => {
     await stopRecording();
     setRecordingSeconds(0);
-  };
-
-  // Screen button quick action
-  const handleScreenAction = () => {
-    if (isLoading || disabled) return;
-    onSendMessage("Inspect my screen and tell me what is currently open.");
   };
 
   // Attachment option select
@@ -226,6 +286,61 @@ export const CommandBar: React.FC<CommandBarProps> = ({
         </div>
       )}
 
+      {/* Model Selector Drop-up Popover */}
+      {isModelOpen && (
+        <div className="command-model-popover" ref={modelPopoverRef}>
+          <div className="model-popover-header">
+            <span className="model-popover-title">SELECT INFERENCE MODEL</span>
+            <span className="model-popover-badge">DB Placeholder</span>
+          </div>
+          <div className="model-options-list">
+            {PLACEHOLDER_MODELS.map((model) => {
+              const isSelected = model.id === activeModelId;
+              return (
+                <button
+                  key={model.id}
+                  type="button"
+                  className={`model-option-item ${isSelected ? "selected" : ""}`}
+                  onClick={() => handleSelectModel(model.id)}
+                >
+                  <div className="model-option-left">
+                    <div className="model-status-indicator">
+                      <span
+                        className="model-dot"
+                        style={{
+                          background: isSelected ? model.badgeColor : "rgba(255,255,255,0.25)",
+                          boxShadow: isSelected ? `0 0 8px ${model.badgeColor}` : "none",
+                        }}
+                      />
+                    </div>
+                    <div className="model-option-info">
+                      <div className="model-option-name-row">
+                        <span className="model-option-name">{model.name}</span>
+                        <span
+                          className="model-provider-badge"
+                          style={{
+                            color: model.badgeColor,
+                            borderColor: `${model.badgeColor}40`,
+                            background: `${model.badgeColor}15`,
+                          }}
+                        >
+                          {model.tag}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  {isSelected && (
+                    <span className="model-check-icon" style={{ color: model.badgeColor }}>
+                      ✓
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <form className="command-form" onSubmit={handleTextSubmit}>
         {/* Left: Plus Attachment Button with + to X rotation */}
         <button
@@ -287,20 +402,31 @@ export const CommandBar: React.FC<CommandBarProps> = ({
           </div>
         )}
 
-        {/* Right: Three Circular Buttons (Screen, Voice, Send) - Icons Only */}
+        {/* Right: Three Circular Buttons (Model, Voice, Send) - Icons Only */}
         <div className="command-right-cluster">
-          {/* Button 1: Screen Inspection */}
+          {/* Button 1: AI Model Selector Drop-up */}
           <button
+            ref={modelBtnRef}
             type="button"
-            className="command-action-circle-btn btn-screen"
-            onClick={handleScreenAction}
-            disabled={isLoading || disabled || isRecording}
-            title="Inspect Screen (Vision)"
+            className={`command-action-circle-btn btn-model ${isModelOpen ? "open" : ""}`}
+            onClick={() => {
+              setIsAttachOpen(false);
+              setIsModelOpen((prev) => !prev);
+            }}
+            disabled={isLoading || disabled}
+            title={`Select Model (Active: ${activeModel.name})`}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-              <line x1="8" y1="21" x2="16" y2="21"></line>
-              <line x1="12" y1="17" x2="12" y2="21"></line>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="4" y="4" width="16" height="16" rx="2" />
+              <rect x="9" y="9" width="6" height="6" />
+              <line x1="9" y1="1" x2="9" y2="4" />
+              <line x1="15" y1="1" x2="15" y2="4" />
+              <line x1="9" y1="20" x2="9" y2="23" />
+              <line x1="15" y1="20" x2="15" y2="23" />
+              <line x1="20" y1="9" x2="23" y2="9" />
+              <line x1="20" y1="14" x2="23" y2="14" />
+              <line x1="1" y1="9" x2="4" y2="9" />
+              <line x1="1" y1="14" x2="4" y2="14" />
             </svg>
           </button>
 

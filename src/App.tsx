@@ -2,19 +2,15 @@ import React, { useState, useRef, useEffect } from "react";
 import { TitleBar } from "./components/layout/TitleBar";
 import { Sidebar, NavTab } from "./components/layout/Sidebar";
 import { ViewHeader } from "./components/layout/ViewHeader";
-import { RufusFace, EyeState } from "./components/robot/RufusFace";
 import { ChatBubble } from "./components/chat/ChatBubble";
 import { HeroWakeup } from "./components/chat/HeroWakeup";
 import { ThinkingIndicator } from "./components/chat/ThinkingIndicator";
 import { CommandBar } from "./components/chat/CommandBar";
-import { AudioWaveform } from "./components/common/AudioWaveform";
 import { useAgentChat } from "./hooks/useAgentChat";
-import { useAudioRecorder } from "./hooks/useAudioRecorder";
 import "./App.css";
 
 export const App: React.FC = () => {
   const { messages, isLoading, sendMessage, sendVoiceMessage, sessionId } = useAgentChat();
-  const { isRecording, waveformBars, startRecording, stopRecording } = useAudioRecorder();
   const feedEndRef = useRef<HTMLDivElement>(null);
 
   // Layout & Navigation State
@@ -41,14 +37,6 @@ export const App: React.FC = () => {
   useEffect(() => {
     feedEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
-
-  // Derive eye state based on agent activity
-  const getEyeState = (): EyeState => {
-    if (isLoading) return "thinking";
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage?.actions && lastMessage.actions.length > 0) return "happy";
-    return "idle";
-  };
 
   // Cross-window synchronization with Island Capsule
   useEffect(() => {
@@ -102,7 +90,9 @@ export const App: React.FC = () => {
         />
 
         <main className="workspace-main-area">
-          {activeTab !== "assistant" && <ViewHeader activeTab={activeTab} isLive={true} />}
+          {activeTab !== "assistant" && activeTab !== "history" && (
+            <ViewHeader activeTab={activeTab} isLive={true} />
+          )}
 
           <div className="workspace-content-pane">
             {/* TAB 1: ASSISTANT (MAIN CHAT) */}
@@ -134,66 +124,10 @@ export const App: React.FC = () => {
               </>
             )}
 
-            {/* TAB 2: VOICE */}
-            {activeTab === "voice" && (
-              <div className="views-generic-container" style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
-                <div style={{ maxWidth: 460, padding: 32, background: "rgba(255,255,255,0.03)", borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)" }}>
-                  <RufusFace state={isRecording ? "listening" : getEyeState()} subtitle={isRecording ? "Listening to your voice..." : "Voice loop standing by"} />
-                  <div style={{ marginTop: 24, marginBottom: 20 }}>
-                    <AudioWaveform bars={waveformBars} isActive={isRecording} height={36} />
-                  </div>
-                  <p style={{ color: "#94a3b8", fontSize: 13, marginBottom: 20 }}>
-                    Push-to-Talk or speak when always-on mic is toggled. Piper synthesizes replies instantly in memory.
-                  </p>
-                  <button
-                    type="button"
-                    className={`command-mic-btn ${isRecording ? "recording" : ""}`}
-                    onMouseDown={startRecording}
-                    onMouseUp={async () => {
-                      const blob = await stopRecording();
-                      if (blob) sendVoiceMessage(blob);
-                    }}
-                    style={{ padding: "10px 24px", fontSize: 14 }}
-                  >
-                    {isRecording ? "Release to Send" : "Hold to Talk"}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 3: HISTORY */}
+            {/* TAB 2: HISTORY */}
             {activeTab === "history" && (
               <div className="views-generic-container">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <h3 style={{ margin: 0, fontSize: 15, color: "#f8fafc" }}>Conversation Sessions</h3>
-                  <span style={{ fontSize: 12, color: "#00e5ff" }}>Current: {sessionId}</span>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <div
-                    style={{
-                      padding: 14,
-                      background: "rgba(0, 229, 255, 0.06)",
-                      border: "1px solid rgba(0, 229, 255, 0.3)",
-                      borderRadius: 10,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#00e5ff" }} />
-                        <span style={{ fontWeight: 600, fontSize: 14, color: "#f8fafc" }}>Active Desktop Session</span>
-                      </div>
-                      <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>
-                        {messages.length} messages in memory • Last interaction: {messages[messages.length - 1]?.timestamp || "Now"}
-                      </p>
-                    </div>
-                    <span style={{ fontSize: 11, padding: "3px 8px", borderRadius: 4, background: "rgba(0,229,255,0.15)", color: "#00e5ff" }}>
-                      Active
-                    </span>
-                  </div>
-                </div>
+                {/* Cleared: Ready for new History layout */}
               </div>
             )}
 

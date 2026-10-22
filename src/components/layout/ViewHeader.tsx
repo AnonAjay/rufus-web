@@ -13,11 +13,6 @@ const TAB_METADATA: Record<NavTab, { title: string; subtitle: string; category: 
     title: "Assistant",
     subtitle: "One conversation. Every capability. Direct local OS tool execution.",
   },
-  voice: {
-    category: "CONVERSATIONS",
-    title: "Voice Companion",
-    subtitle: "Real-time push-to-talk speech and ambient audio pipeline.",
-  },
   history: {
     category: "CONVERSATIONS",
     title: "Conversation History",

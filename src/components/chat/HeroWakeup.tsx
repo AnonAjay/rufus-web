@@ -69,9 +69,6 @@ export const HeroWakeup: React.FC<HeroWakeupProps> = ({ isFadingOut }) => {
             <span className="hero-cursor">|</span>
           )}
         </h2>
-        <p className="hero-subtext">
-          Your physical & desktop AI companion. Direct OS execution, robot stunts & web intelligence.
-        </p>
       </div>
     </div>
   );
