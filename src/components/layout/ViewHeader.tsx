@@ -28,25 +28,20 @@ const TAB_METADATA: Record<NavTab, { title: string; subtitle: string; category: 
     title: "Autonomous Missions",
     subtitle: "Multi-step agent workflows and scheduled task loops. (Phase 3 Roadmap)",
   },
-  reminders: {
+  focus: {
     category: "LIFE APPS",
-    title: "Reminders & Focus",
-    subtitle: "Contextual desktop reminders, focus intervals, and alert notifications.",
+    title: "Focus & Timers",
+    subtitle: "Pomodoro intervals, deep work countdowns, and companion hardware sync.",
   },
-  alarms: {
+  tasks: {
     category: "LIFE APPS",
-    title: "Alarms & Timers",
-    subtitle: "Precision system alarms and Pomodoro timer intervals.",
+    title: "Tasks & Reminders",
+    subtitle: "Linear-style action list, scheduled alerts, and instant focus shortcuts.",
   },
   calendar: {
     category: "LIFE APPS",
     title: "Calendar Schedule",
     subtitle: "Daily schedule, calendar events, and proactive agenda summaries.",
-  },
-  tasks: {
-    category: "LIFE APPS",
-    title: "Tasks & To-Do",
-    subtitle: "Track action items, engineer checklists, and completed goals.",
   },
   "smart-home": {
     category: "LIFE APPS",

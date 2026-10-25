@@ -6,32 +6,30 @@ import { ChatBubble } from "./components/chat/ChatBubble";
 import { HeroWakeup } from "./components/chat/HeroWakeup";
 import { ThinkingIndicator } from "./components/chat/ThinkingIndicator";
 import { CommandBar } from "./components/chat/CommandBar";
+import { HistoryView } from "./components/history/HistoryView";
+import { FocusTimers } from "./components/productivity/FocusTimers";
+import { TasksReminders } from "./components/productivity/TasksReminders";
 import { useAgentChat } from "./hooks/useAgentChat";
 import "./App.css";
 
 export const App: React.FC = () => {
-  const { messages, isLoading, sendMessage, sendVoiceMessage, sessionId } = useAgentChat();
+  const {
+    messages,
+    sessions,
+    sessionId,
+    isLoading,
+    sendMessage,
+    sendVoiceMessage,
+    loadSession,
+    newSession,
+    deleteSession,
+  } = useAgentChat();
   const feedEndRef = useRef<HTMLDivElement>(null);
 
   // Layout & Navigation State
   const [activeTab, setActiveTab] = useState<NavTab>("assistant");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
-
-  // Reminders local state
-  const [reminders, setReminders] = useState<Array<{ id: string; title: string; time: string; status: string }>>([
-    { id: "rem-1", title: "Review LangGraph acyclic DAG invariants", time: "Tonight 23:59", status: "pending" },
-    { id: "rem-2", title: "ESP32 WROOM-32 breadboard bench wiring", time: "Tomorrow 10:00", status: "scheduled" },
-  ]);
-  const [newReminderTitle, setNewReminderTitle] = useState<string>("");
-
-  // Tasks local state
-  const [tasks, setTasks] = useState<Array<{ id: string; text: string; done: boolean }>>([
-    { id: "t-1", text: "Multi-window BroadcastChannel synchronization", done: true },
-    { id: "t-2", text: "Brace-depth stack parser for JSON sanitization", done: true },
-    { id: "t-3", text: "Sidebar navigation and memory explorer UI", done: true },
-    { id: "t-4", text: "Supabase conversation persistence integration", done: false },
-    { id: "t-5", text: "Nebius Token Factory / NVIDIA Nemotron provider", done: false },
-  ]);
+  const [activeFocusTask, setActiveFocusTask] = useState<string | undefined>();
 
   // Auto-scroll chat feed to bottom on new messages
   useEffect(() => {
@@ -51,33 +49,12 @@ export const App: React.FC = () => {
     };
   }, []);
 
-  const handleAddReminder = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newReminderTitle.trim()) return;
-    setReminders((prev) => [
-      ...prev,
-      {
-        id: `rem-${Date.now()}`,
-        title: newReminderTitle.trim(),
-        time: "Today",
-        status: "pending",
-      },
-    ]);
-    setNewReminderTitle("");
-  };
-
-  const handleToggleTask = (id: string) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
-    );
-  };
-
   return (
     <div className="rufus-window-shell">
       {/* Frameless Custom TitleBar */}
       <TitleBar
-        unreadNotificationsCount={reminders.filter((r) => r.status === "pending").length}
-        onOpenNotifications={() => setActiveTab("reminders")}
+        unreadNotificationsCount={1}
+        onOpenNotifications={() => setActiveTab("tasks")}
       />
 
       {/* Full Workspace Layout with Left Sidebar */}
@@ -126,9 +103,20 @@ export const App: React.FC = () => {
 
             {/* TAB 2: HISTORY */}
             {activeTab === "history" && (
-              <div className="views-generic-container">
-                {/* Cleared: Ready for new History layout */}
-              </div>
+              <HistoryView
+                sessions={sessions}
+                activeSessionId={sessionId}
+                onSelectSession={(id) => {
+                  loadSession(id);
+                  setActiveTab("assistant");
+                }}
+                onNewSession={() => {
+                  newSession();
+                  setActiveTab("assistant");
+                }}
+                onDeleteSession={deleteSession}
+                isLoading={isLoading}
+              />
             )}
 
             {/* TAB 4: APPS & SKILLS */}
@@ -172,115 +160,36 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {/* TAB 5: REMINDERS & FOCUS */}
-            {activeTab === "reminders" && (
-              <div className="views-generic-container">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <h3 style={{ margin: 0, fontSize: 15, color: "#f8fafc" }}>Reminders & Focus</h3>
-                  <span style={{ fontSize: 12, color: "#00e5ff" }}>{reminders.length} Active</span>
-                </div>
-                <form onSubmit={handleAddReminder} style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                  <input
-                    type="text"
-                    value={newReminderTitle}
-                    onChange={(e) => setNewReminderTitle(e.target.value)}
-                    placeholder="Add a new reminder or focus interval..."
-                    style={{
-                      flex: 1,
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: 8,
-                      padding: "8px 12px",
-                      color: "#f8fafc",
-                      fontSize: 13,
-                      outline: "none",
-                    }}
-                  />
-                  <button
-                    type="submit"
-                    style={{
-                      background: "rgba(0,229,255,0.15)",
-                      border: "1px solid rgba(0,229,255,0.35)",
-                      color: "#00e5ff",
-                      borderRadius: 8,
-                      padding: "8px 16px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      fontSize: 13,
-                    }}
-                  >
-                    Add
-                  </button>
-                </form>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
-                  {reminders.map((r) => (
-                    <div
-                      key={r.id}
-                      style={{
-                        padding: 12,
-                        background: "rgba(255,255,255,0.03)",
-                        border: "1px solid rgba(255,255,255,0.07)",
-                        borderRadius: 8,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span style={{ fontSize: 13, color: "#f1f5f9" }}>{r.title}</span>
-                      <span style={{ fontSize: 11, color: "#94a3b8" }}>{r.time}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            {/* TAB: FOCUS & TIMERS */}
+            {activeTab === "focus" && (
+              <FocusTimers
+                activeTaskTitle={activeFocusTask}
+                onClearActiveTask={() => setActiveFocusTask(undefined)}
+              />
             )}
 
-            {/* TAB 6: TASKS & TO-DO */}
+            {/* TAB: TASKS & REMINDERS */}
             {activeTab === "tasks" && (
-              <div className="views-generic-container">
-                <h3 style={{ margin: "0 0 10px 0", fontSize: 15, color: "#f8fafc" }}>Engineering Action Items</h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {tasks.map((task) => (
-                    <div
-                      key={task.id}
-                      onClick={() => handleToggleTask(task.id)}
-                      style={{
-                        padding: 12,
-                        background: task.done ? "rgba(16, 185, 129, 0.05)" : "rgba(255,255,255,0.03)",
-                        border: task.done ? "1px solid rgba(16, 185, 129, 0.2)" : "1px solid rgba(255,255,255,0.08)",
-                        borderRadius: 8,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        cursor: "pointer",
-                      }}
-                    >
-                      <span style={{ color: task.done ? "#10b981" : "#64748b", fontSize: 14 }}>
-                        {task.done ? "✓" : "○"}
-                      </span>
-                      <span style={{ fontSize: 13, color: task.done ? "#94a3b8" : "#f1f5f9", textDecoration: task.done ? "line-through" : "none" }}>
-                        {task.text}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <TasksReminders
+                onStartFocusOnTask={(taskTitle) => {
+                  setActiveFocusTask(taskTitle);
+                  setActiveTab("focus");
+                }}
+              />
             )}
 
-            {/* TAB 7: ALARMS & CALENDAR */}
-            {(activeTab === "alarms" || activeTab === "calendar") && (
+            {/* TAB: CALENDAR */}
+            {activeTab === "calendar" && (
               <div className="views-generic-container">
                 <div className="telemetry-card" style={{ padding: 24, textAlign: "center" }}>
-                  <h4 style={{ margin: "0 0 8px 0", color: "#f8fafc" }}>
-                    {activeTab === "alarms" ? "No Active Alarms" : "Calendar Sync Ready"}
-                  </h4>
+                  <h4 style={{ margin: "0 0 8px 0", color: "#f8fafc" }}>Calendar Sync Ready</h4>
                   <p style={{ margin: 0, fontSize: 13, color: "#94a3b8" }}>
-                    {activeTab === "alarms"
-                      ? "Set Pomodoro focus intervals or scheduled alerts directly via the Assistant."
-                      : "Integrates with local system calendar and proactive daily agenda summaries."}
+                    Integrates with local system calendar and proactive daily agenda summaries.
                   </p>
                 </div>
               </div>
             )}
+
 
             {/* TAB 8: ROBOT TELEMETRY */}
             {activeTab === "robot-telemetry" && (

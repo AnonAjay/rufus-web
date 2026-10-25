@@ -35,3 +35,14 @@ export interface SystemStatus {
   ollamaOnline: boolean;
   lastChecked: string;
 }
+
+export interface SessionItem {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  synced: number;
+  message_count?: number;
+  last_message?: string;
+  last_model?: string;
+}
