@@ -9,6 +9,7 @@ import { CommandBar } from "./components/chat/CommandBar";
 import { HistoryView } from "./components/history/HistoryView";
 import { FocusTimers } from "./components/productivity/FocusTimers";
 import { TasksReminders } from "./components/productivity/TasksReminders";
+import { AppsSkillsView } from "./components/apps/AppsSkillsView";
 import { useAgentChat } from "./hooks/useAgentChat";
 import "./App.css";
 
@@ -67,7 +68,7 @@ export const App: React.FC = () => {
         />
 
         <main className="workspace-main-area">
-          {activeTab !== "assistant" && activeTab !== "history" && activeTab !== "focus" && (
+          {activeTab !== "assistant" && activeTab !== "history" && activeTab !== "focus" && activeTab !== "apps" && (
             <ViewHeader activeTab={activeTab} isLive={true} />
           )}
 
@@ -119,46 +120,8 @@ export const App: React.FC = () => {
               />
             )}
 
-            {/* TAB 4: APPS & SKILLS */}
-            {activeTab === "apps" && (
-              <div className="views-generic-container">
-                <h3 style={{ margin: "0 0 4px 0", fontSize: 15, color: "#f8fafc" }}>Registered Local Tools & Allowlist</h3>
-                <p style={{ margin: "0 0 14px 0", fontSize: 12.5, color: "#94a3b8" }}>
-                  Strict allowlist guarantees no arbitrary shell execution. The model selects intent; tools enforce OS safety.
-                </p>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 12 }}>
-                  {[
-                    { icon: "💬", title: "WhatsApp", desc: "Launches desktop client or web fallback safely." },
-                    { icon: "⚡", title: "Antigravity & VS Code", desc: "Safe process launcher with strict binary path allowlist." },
-                    { icon: "🎵", title: "Spotify Player", desc: "Controls track search and playback." },
-                    { icon: "🔍", title: "Web Search", desc: "Instant factual definitions and search queries via DuckDuckGo." },
-                    { icon: "🔊", title: "System Volume", desc: "Master audio endpoint volume & mute via pycaw." },
-                    { icon: "☀️", title: "Screen Brightness", desc: "Hardware monitor brightness control." },
-                    { icon: "📸", title: "Inspect Screen", desc: "Visual context analysis via Moondream 2 vision AI." },
-                    { icon: "🔒", title: "Workstation Lock", desc: "Protected Win32 session lock with confirmation." },
-                  ].map((app, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        padding: 14,
-                        background: "rgba(255,255,255,0.03)",
-                        border: "1px solid rgba(255,255,255,0.08)",
-                        borderRadius: 10,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 6,
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontSize: 18 }}>{app.icon}</span>
-                        <span style={{ fontWeight: 600, fontSize: 13.5, color: "#f8fafc" }}>{app.title}</span>
-                      </div>
-                      <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>{app.desc}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* TAB 4: APPS & SKILLS (Blank Slate) */}
+            {activeTab === "apps" && <AppsSkillsView />}
 
             {/* TAB: FOCUS & TIMERS */}
             {activeTab === "focus" && (
