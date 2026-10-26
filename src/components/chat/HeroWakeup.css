@@ -148,21 +148,6 @@
   }
 }
 
-/* Pupil - Luminous Electric Highlight matching App Logo & Chatbot */
-.hero-pupil {
-  width: 11px;
-  height: 20px;
-  background: #e0f7fa;
-  border-radius: 5px;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.85);
-  opacity: 0.95;
-  transition: opacity 0.3s ease;
-}
-
-.hero-face-frame.sleeping .hero-pupil {
-  opacity: 0;
-}
-
 /* Text Wrapper */
 .hero-text-wrapper {
   display: flex;

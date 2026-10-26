@@ -17,13 +17,11 @@ export const RufusEyesLogo: React.FC<{ size?: number; glow?: boolean; animated?:
     {/* Left Eye */}
     <g className="rufus-eye-group">
       <rect x="2" y="3" width="11" height="14" rx="4" fill="#00E5FF" />
-      <rect x="5.5" y="6" width="4" height="8" rx="2" fill="#E0F7FA" opacity="0.95" />
     </g>
 
     {/* Right Eye */}
     <g className="rufus-eye-group">
       <rect x="19" y="3" width="11" height="14" rx="4" fill="#00E5FF" />
-      <rect x="22.5" y="6" width="4" height="8" rx="2" fill="#E0F7FA" opacity="0.95" />
     </g>
   </svg>
 );

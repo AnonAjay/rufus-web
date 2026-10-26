@@ -67,19 +67,8 @@
   height: 5.5px;
   background: #00e5ff;
   border-radius: 2px;
-  box-shadow: 0 0 5px #00e5ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  box-shadow: 0 0 6px #00e5ff, 0 0 10px rgba(0, 229, 255, 0.4);
   animation: think-scan 1s infinite alternate ease-in-out;
-}
-
-.thinking-pupil {
-  width: 2.5px;
-  height: 2.5px;
-  background: #e0f7fa;
-  border-radius: 1px;
-  box-shadow: 0 0 4px #ffffff;
 }
 
 /* Thinking Bubble */

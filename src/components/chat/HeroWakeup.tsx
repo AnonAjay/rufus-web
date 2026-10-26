@@ -52,12 +52,8 @@ export const HeroWakeup: React.FC<HeroWakeupProps> = ({ isFadingOut }) => {
       <div className={`hero-face-frame ${wakeState}`}>
         <div className="hero-face-glow-ring" />
         <div className="hero-oled-screen">
-          <div className="hero-eye left-eye">
-            <div className="hero-pupil" />
-          </div>
-          <div className="hero-eye right-eye">
-            <div className="hero-pupil" />
-          </div>
+          <div className="hero-eye left-eye" />
+          <div className="hero-eye right-eye" />
         </div>
       </div>
 

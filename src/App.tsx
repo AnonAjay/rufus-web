@@ -67,7 +67,7 @@ export const App: React.FC = () => {
         />
 
         <main className="workspace-main-area">
-          {activeTab !== "assistant" && activeTab !== "history" && (
+          {activeTab !== "assistant" && activeTab !== "history" && activeTab !== "focus" && (
             <ViewHeader activeTab={activeTab} isLive={true} />
           )}
 
