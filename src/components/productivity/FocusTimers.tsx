@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import "./FocusTimers.css";
 
 export interface FocusTimersProps {
@@ -18,72 +18,48 @@ export interface TimerPreset {
   isCustom?: boolean;
 }
 
+export interface AppUsageStat {
+  id: string;
+  name: string;
+  timeSpent: string;
+  percentage: number;
+  category: "editor" | "browser" | "ai" | "terminal" | "other";
+  icon: string;
+}
+
+export interface DayFocusMetric {
+  day: string;
+  hours: number;
+  isPeak?: boolean;
+}
+
 const DEFAULT_PRESETS: TimerPreset[] = [
-  { id: "p-25", name: "Pomodoro", seconds: 25 * 60, type: "focus" },
-  { id: "p-50", name: "Deep Work", seconds: 50 * 60, type: "focus" },
-  { id: "p-15", name: "Long Break", seconds: 15 * 60, type: "break" },
-  { id: "p-5", name: "Short Rest", seconds: 5 * 60, type: "break" },
+  { id: "p-25", name: "Pomodoro Sprint", seconds: 25 * 60, type: "focus" },
+  { id: "p-50", name: "Deep Work Core", seconds: 50 * 60, type: "focus" },
+  { id: "p-15", name: "Code Review", seconds: 15 * 60, type: "focus" },
+  { id: "p-90", name: "Architecture Flow", seconds: 90 * 60, type: "focus" },
 ];
 
-// Mathematically exact perimeter point along clockwise stadium path
-// Path: 680x350, inset 16, corner radius 48
-const computeStadiumPoint = (t: number) => {
-  const arcLen = (Math.PI / 2) * 48; // ~75.398
-  const totalLen = 276 + arcLen + 222 + arcLen + 552 + arcLen + 222 + arcLen + 276; // ~1849.59
-  let d = (((t % 1) + 1) % 1) * totalLen;
+const WEEKLY_METRICS: DayFocusMetric[] = [
+  { day: "Mon", hours: 3.5 },
+  { day: "Tue", hours: 4.8 },
+  { day: "Wed", hours: 5.2 },
+  { day: "Thu", hours: 4.0 },
+  { day: "Fri", hours: 6.4, isPeak: true },
+  { day: "Sat", hours: 2.8 },
+  { day: "Sun", hours: 3.9 },
+];
 
-  // 1. Top-Right Straight: (340, 16) -> (616, 16)
-  if (d <= 276) return { x: 340 + d, y: 16 };
-  d -= 276;
-
-  // 2. Top-Right Corner Arc: (616, 16) -> (664, 64)
-  if (d <= arcLen) {
-    const angle = d / 48 - Math.PI / 2;
-    return { x: 616 + 48 * Math.cos(angle), y: 64 + 48 * Math.sin(angle) };
-  }
-  d -= arcLen;
-
-  // 3. Right Vertical Edge: (664, 64) -> (664, 286)
-  if (d <= 222) return { x: 664, y: 64 + d };
-  d -= 222;
-
-  // 4. Bottom-Right Corner Arc: (664, 286) -> (616, 334)
-  if (d <= arcLen) {
-    const angle = d / 48;
-    return { x: 616 + 48 * Math.cos(angle), y: 286 + 48 * Math.sin(angle) };
-  }
-  d -= arcLen;
-
-  // 5. Bottom Horizontal Edge: (616, 334) -> (64, 334)
-  if (d <= 552) return { x: 616 - d, y: 334 };
-  d -= 552;
-
-  // 6. Bottom-Left Corner Arc: (64, 334) -> (16, 286)
-  if (d <= arcLen) {
-    const angle = d / 48 + Math.PI / 2;
-    return { x: 64 + 48 * Math.cos(angle), y: 286 + 48 * Math.sin(angle) };
-  }
-  d -= arcLen;
-
-  // 7. Left Vertical Edge: (16, 286) -> (16, 64)
-  if (d <= 222) return { x: 16, y: 286 - d };
-  d -= 222;
-
-  // 8. Top-Left Corner Arc: (16, 64) -> (64, 16)
-  if (d <= arcLen) {
-    const angle = d / 48 + Math.PI;
-    return { x: 64 + 48 * Math.cos(angle), y: 64 + 48 * Math.sin(angle) };
-  }
-  d -= arcLen;
-
-  // 9. Top-Left Straight back to center: (64, 16) -> (340, 16)
-  return { x: 64 + d, y: 16 };
-};
+const APP_USAGE_DATA: AppUsageStat[] = [
+  { id: "vscode", name: "Visual Studio Code", timeSpent: "3h 45m", percentage: 46, category: "editor", icon: "💻" },
+  { id: "chrome", name: "Google Chrome", timeSpent: "2h 10m", percentage: 27, category: "browser", icon: "🌐" },
+  { id: "antigravity", name: "Antigravity IDE", timeSpent: "1h 15m", percentage: 16, category: "ai", icon: "⚡" },
+  { id: "terminal", name: "PowerShell & WSL", timeSpent: "45m", percentage: 11, category: "terminal", icon: "📟" },
+];
 
 export const FocusTimers: React.FC<FocusTimersProps> = ({
   activeTaskTitle,
   onClearActiveTask,
-  onToggleMiniMode,
 }) => {
   // Preset state with CRUD capability
   const [presets, setPresets] = useState<TimerPreset[]>(() => {
@@ -101,7 +77,11 @@ export const FocusTimers: React.FC<FocusTimersProps> = ({
   const [canvasMode, setCanvasMode] = useState<TimerCanvasMode>("selection");
   const [profile, setProfile] = useState<FocusProfile>("deep");
   const [modeToast, setModeToast] = useState<string | null>(null);
+  const [isSoundEnabled, setIsSoundEnabled] = useState<boolean>(true);
   const toastTimeoutRef = useRef<number | null>(null);
+
+  // Drawer Open/Close State (Trapezoid Slider rides with drawer)
+  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
 
   // Telemetry & Leniency Tracking
   const [completedSessions, setCompletedSessions] = useState<number>(4);
@@ -109,15 +89,6 @@ export const FocusTimers: React.FC<FocusTimersProps> = ({
   const [streakDays] = useState<number>(3);
   const [breakCount, setBreakCount] = useState<number>(0);
   const [totalBreakSeconds, setTotalBreakSeconds] = useState<number>(0);
-
-  // New Preset Inline Form
-  const [isAddingPreset, setIsAddingPreset] = useState<boolean>(false);
-  const [newPresetName, setNewPresetName] = useState<string>("");
-  const [newPresetMinutes, setNewPresetMinutes] = useState<number>(30);
-
-  // Bottom-Right Trophy HUD Popover State
-  const [isTrophyOpen, setIsTrophyOpen] = useState<boolean>(false);
-  const [isTrophyHovered, setIsTrophyHovered] = useState<boolean>(false);
 
   // References
   const timerRef = useRef<number | null>(null);
@@ -169,22 +140,24 @@ export const FocusTimers: React.FC<FocusTimersProps> = ({
             setCompletedSessions((c) => c + 1);
             setTotalFocusMinutes((m) => m + Math.round(totalSeconds / 60));
 
-            // Sound Chime (Synthesized via Web Audio API)
-            try {
-              const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-              const osc = audioCtx.createOscillator();
-              const gain = audioCtx.createGain();
-              osc.connect(gain);
-              gain.connect(audioCtx.destination);
-              osc.type = "sine";
-              osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-              osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.16); // A5
-              gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-              gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.7);
-              osc.start();
-              osc.stop(audioCtx.currentTime + 0.7);
-            } catch {
-              // audio context fallback
+            // Sound Chime (Synthesized via Web Audio API if sound enabled)
+            if (isSoundEnabled) {
+              try {
+                const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.16); // A5
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.7);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.7);
+              } catch {
+                // audio context fallback
+              }
             }
 
             return 0;
@@ -199,7 +172,7 @@ export const FocusTimers: React.FC<FocusTimersProps> = ({
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [canvasMode, totalSeconds]);
+  }, [canvasMode, isSoundEnabled, totalSeconds]);
 
   // Time calculations (Hours, Minutes, Seconds)
   const hours = Math.floor(remainingSeconds / 3600);
@@ -211,11 +184,11 @@ export const FocusTimers: React.FC<FocusTimersProps> = ({
   const holdTimeoutRef = useRef<number | null>(null);
   const holdIntervalRef = useRef<number | null>(null);
 
-  // Adjust time in Selection Mode
+  // Adjust time in Selection Mode - allows down to 1 second
   const adjustTime = useCallback((deltaSeconds: number) => {
     if (canvasMode !== "selection") return;
     setTotalSeconds((prev) => {
-      const nextVal = Math.max(60, Math.min(24 * 3600, prev + deltaSeconds));
+      const nextVal = Math.max(1, Math.min(24 * 3600, prev + deltaSeconds));
       setRemainingSeconds(nextVal);
       return nextVal;
     });
@@ -235,12 +208,10 @@ export const FocusTimers: React.FC<FocusTimersProps> = ({
 
   const startHold = useCallback((deltaSeconds: number) => {
     if (canvasMode !== "selection") return;
-    // 1. Instant response on tap
     adjustTime(deltaSeconds);
     stopHold();
 
-    // 2. Debounce hold before repeating
-    holdTimeoutRef.current = setTimeout(() => {
+    holdTimeoutRef.current = window.setTimeout(() => {
       let ticks = 0;
       let intervalMs = 90;
 
@@ -250,55 +221,38 @@ export const FocusTimers: React.FC<FocusTimersProps> = ({
         if (ticks === 10 && intervalMs > 35) {
           intervalMs = 40;
           if (holdIntervalRef.current) clearInterval(holdIntervalRef.current);
-          holdIntervalRef.current = setInterval(runTick, intervalMs);
+          holdIntervalRef.current = window.setInterval(runTick, intervalMs);
         }
       };
 
-      holdIntervalRef.current = setInterval(runTick, intervalMs);
+      holdIntervalRef.current = window.setInterval(runTick, intervalMs);
     }, 280);
-  }, [canvasMode, adjustTime, stopHold]);
+  }, [adjustTime, canvasMode, stopHold]);
 
-  useEffect(() => {
-    return () => stopHold();
-  }, [stopHold]);
-
-  // Play / Pause Toggle with 15s Break Leniency Check
+  // Play / Pause Toggle
   const handleTogglePlay = () => {
-    if (canvasMode === "running") {
-      // Transition to Paused: record timestamp
+    if (canvasMode === "selection") {
+      setCanvasMode("running");
+    } else if (canvasMode === "running") {
       pauseTimestampRef.current = Date.now();
       setCanvasMode("paused");
-    } else {
-      // Transition from Paused to Running: check leniency
+    } else if (canvasMode === "paused") {
       if (pauseTimestampRef.current) {
-        const diffSec = Math.round((Date.now() - pauseTimestampRef.current) / 1000);
-        if (diffSec >= 15) {
-          // Genuine break registered (>15s)
-          setBreakSecondsTracker(diffSec);
+        const pauseDurationSec = Math.round((Date.now() - pauseTimestampRef.current) / 1000);
+        if (pauseDurationSec > 15) {
+          setBreakCount((b) => b + 1);
+          setTotalBreakSeconds((s) => s + pauseDurationSec);
         }
         pauseTimestampRef.current = null;
       }
       setCanvasMode("running");
+    } else if (canvasMode === "finished") {
+      setRemainingSeconds(totalSeconds);
+      setCanvasMode("running");
     }
   };
 
-  const setBreakSecondsTracker = (secs: number) => {
-    setBreakCount((c) => c + 1);
-    setTotalBreakSeconds((b) => b + secs);
-  };
-
-  // Focus Mode Profile Toggle (Bullseye Target vs Arrows Only)
-  const handleToggleProfile = () => {
-    const next = profile === "deep" ? "casual" : "deep";
-    setProfile(next);
-    setModeToast(next === "deep" ? "🎯 DEEP FOCUS • BULLSEYE ACTIVE" : "🏹 CASUAL FLOW • ARROWS ACTIVE");
-    if (toastTimeoutRef.current) window.clearTimeout(toastTimeoutRef.current);
-    toastTimeoutRef.current = window.setTimeout(() => {
-      setModeToast(null);
-    }, 2200);
-  };
-
-  // Reset / Replay Handler
+  // Reset Timer
   const handleReset = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     pauseTimestampRef.current = null;
@@ -306,98 +260,45 @@ export const FocusTimers: React.FC<FocusTimersProps> = ({
     setCanvasMode("selection");
   };
 
-  // Quick Extension (+5m)
+  // Add Seconds
+  const handleAddSeconds = (secs: number) => {
+    setRemainingSeconds((prev) => prev + secs);
+    setTotalSeconds((prev) => prev + secs);
+  };
+
+  // Add Minutes
   const handleAddMinutes = (mins: number) => {
-    setTotalSeconds((prev) => prev + mins * 60);
     setRemainingSeconds((prev) => prev + mins * 60);
+    setTotalSeconds((prev) => prev + mins * 60);
   };
 
-  // Early Complete Handler (Flag action)
-  const handleCompleteEarly = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    pauseTimestampRef.current = null;
-    setRemainingSeconds(0);
-    setCompletedSessions((c) => c + 1);
-    setTotalFocusMinutes((m) => m + Math.max(1, Math.round((totalSeconds - remainingSeconds) / 60)));
-    setCanvasMode("finished");
-
-    try {
-      const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-      osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.16); // A5
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.7);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.7);
-    } catch {
-      // Audio fallback
-    }
+  // Toggle Deep vs Casual profile
+  const handleToggleProfile = () => {
+    const next = profile === "deep" ? "casual" : "deep";
+    setProfile(next);
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setModeToast(next === "deep" ? "Deep Focus: Maximum Shield Active" : "Casual Flow: Ambient Mode Active");
+    toastTimeoutRef.current = window.setTimeout(() => {
+      setModeToast(null);
+    }, 2600);
   };
 
-  // Select Preset
+  // Select Preset & Run
   const handleSelectPreset = (preset: TimerPreset) => {
-    if (timerRef.current) clearInterval(timerRef.current);
     setTotalSeconds(preset.seconds);
     setRemainingSeconds(preset.seconds);
     setCanvasMode("selection");
+    setIsDrawerOpen(false);
   };
-
-  // Preset CRUD Operations
-  const handleCreatePreset = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPresetName.trim() || newPresetMinutes <= 0) return;
-    const newPreset: TimerPreset = {
-      id: `custom-${Date.now()}`,
-      name: newPresetName.trim(),
-      seconds: newPresetMinutes * 60,
-      type: "focus",
-      isCustom: true,
-    };
-    setPresets((prev) => [...prev, newPreset]);
-    setNewPresetName("");
-    setNewPresetMinutes(30);
-    setIsAddingPreset(false);
-    handleSelectPreset(newPreset);
-  };
-
-  const handleDeletePreset = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setPresets((prev) => prev.filter((p) => p.id !== id));
-  };
-
-  // Stadium Progress & Pupil Motion Math
-  const progressRatio = totalSeconds > 0 ? (totalSeconds - remainingSeconds) / totalSeconds : 0;
-
-  // Exact Ray-Cast Eye Tracking toward the laser on the perimeter
-  const pupilOffset = useMemo(() => {
-    if (canvasMode !== "running" && canvasMode !== "paused") {
-      return { x: 0, y: 0 };
-    }
-    const pt = computeStadiumPoint(progressRatio);
-    // Vector from center of OLED display (340, 165) to target point
-    const dx = pt.x - 340;
-    const dy = pt.y - 165;
-    const angle = Math.atan2(dy, dx);
-    return {
-      x: Math.round(Math.cos(angle) * 11),
-      y: Math.round(Math.sin(angle) * 7),
-    };
-  }, [canvasMode, progressRatio]);
 
   return (
     <div className="focus-timers-container">
-      {/* Top Navigation & Status Bar */}
-      <div className="focus-top-nav-bar">
+      {/* 1. TOP HEADER (Clean minimalist heading, no lightning badge) */}
+      <header className="focus-top-nav-bar">
         <div className="focus-title-cluster">
-          <h2 className="focus-main-heading">Focus & Timer</h2>
+          <h1 className="focus-main-heading">Focus & Timers</h1>
         </div>
 
-        {/* Mode & Mini-Mode Controls */}
         <div className="focus-nav-right">
           {activeTaskTitle && (
             <div className="focus-active-task-pill">
@@ -408,525 +309,411 @@ export const FocusTimers: React.FC<FocusTimersProps> = ({
                   type="button"
                   className="task-pill-clear-btn"
                   onClick={onClearActiveTask}
-                  title="Clear task link"
+                  title="Clear task"
                 >
                   ✕
                 </button>
               )}
             </div>
           )}
-
-          {onToggleMiniMode && (
-            <button
-              type="button"
-              className="focus-float-capsule-btn"
-              onClick={onToggleMiniMode}
-              title="Collapse to floating Island Capsule"
-            >
-              <span>Float Capsule</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="7" y1="17" x2="17" y2="7" />
-                <polyline points="7 7 17 7 17 17" />
-              </svg>
-            </button>
-          )}
         </div>
-      </div>
+      </header>
 
-      {/* Main Two-Column Layout */}
-      <div className="focus-workspace-grid">
-        {/* Left Column: Stadium Canvas & Bottom 5-Button Action Cluster */}
-        <div className="focus-center-stage">
-          {/* THE STADIUM CANVAS */}
-          <div className="stadium-canvas-container">
-            {/* SVG Stadium Perimeter Progress Track (680x350) */}
-            <svg
-              className="stadium-track-svg"
-              viewBox="0 0 680 350"
-              preserveAspectRatio="xMidYMid meet"
-            >
-              <defs>
-                <linearGradient id="stadium-flag-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#00e5ff" />
-                  <stop offset="100%" stopColor="#00b4d8" />
-                </linearGradient>
-              </defs>
+      {/* 2. CENTERPIECE TIMER (ULTRA-SCALED 80% PRESENCE + AMBIENT PULSE HALO) */}
+      <main className="focus-centerpiece-stage">
+        {/* Ambient Halo Radial Glow Behind Rufus Face & Digits */}
+        <div className="centerpiece-ambient-halo" />
 
-              {/* Checkered Start / Finish Gate Line */}
-              <line
-                x1="340"
-                y1="6"
-                x2="340"
-                y2="26"
-                stroke="#00e5ff"
-                strokeWidth="2.5"
-                strokeDasharray="3 3"
-                opacity="0.85"
-              />
+        {/* Rufus Solid Electric Cyan OLED Eyes (Scaled Up) */}
+        <div className="centerpiece-rufus-face">
+          <div className="centerpiece-eye" />
+          <div className="centerpiece-eye" />
+        </div>
 
-              {/* Top Finish Flag (🏁) raised prominently above the track */}
-              <g className="stadium-finish-flag" transform="translate(340, -10)">
-                {/* Extended mast from perimeter track (y=16 -> local y=26) to mast tip (local y=0) */}
-                <line x1="0" y1="26" x2="0" y2="0" stroke="#00e5ff" strokeWidth="2.2" strokeLinecap="round" />
-                {/* Anchor dot on perimeter track */}
-                <circle cx="0" cy="26" r="2" fill="#00e5ff" />
-                {/* Mast top finial */}
-                <circle cx="0" cy="0" r="2.2" fill="#00e5ff" />
-                {/* Waving cyber pennant flying above perimeter */}
-                <path
-                  d="M0 13s1.2-1 4.2-1 5.4 1.8 8.4 1.8 4.2-0.9 4.2-0.9V2s-1.2 0.9-4.2 0.9-5.4-1.8-8.4-1.8-4.2 1-4.2 1z"
-                  fill="url(#stadium-flag-grad)"
-                />
-                {/* Checkered accents on waving flag */}
-                <path d="M 4 4.5 L 8 5.8 L 8 12.8 L 4 11.5 Z" fill="rgba(9, 14, 24, 0.45)" />
-                <path d="M 12.6 3.4 L 16.8 2.5 L 16.8 9.5 L 12.6 10.4 Z" fill="rgba(9, 14, 24, 0.45)" />
-              </g>
+        {/* State 1: SELECTION MODE (Large interactive digits down to 1s) */}
+        {canvasMode === "selection" && (
+          <div className="centerpiece-digits-selection">
+            {/* Hours */}
+            <div className="digit-column">
+              <button
+                type="button"
+                className="digit-arrow-btn"
+                onPointerDown={(e) => { e.preventDefault(); startHold(3600); }}
+                onPointerUp={stopHold}
+                onPointerLeave={stopHold}
+                onPointerCancel={stopHold}
+                title="+1 Hour"
+              >
+                ▲
+              </button>
+              <span className="digit-num">{pad2(hours)}</span>
+              <button
+                type="button"
+                className="digit-arrow-btn"
+                onPointerDown={(e) => { e.preventDefault(); startHold(-3600); }}
+                onPointerUp={stopHold}
+                onPointerLeave={stopHold}
+                onPointerCancel={stopHold}
+                title="-1 Hour"
+              >
+                ▼
+              </button>
+              <span className="digit-label">HOURS</span>
+            </div>
 
-              {/* Background Inactive Track (Clockwise loop starting at top-center) */}
-              <path
-                d="M 340 16 L 616 16 A 48 48 0 0 1 664 64 L 664 286 A 48 48 0 0 1 616 334 L 64 334 A 48 48 0 0 1 16 286 L 16 64 A 48 48 0 0 1 64 16 L 340 16 Z"
-                className="stadium-track-bg"
-                pathLength="1000"
-              />
+            <span className="digit-separator">:</span>
 
-              {/* Glowing Laser Progress Stroke (Clockwise) */}
-              <path
-                d="M 340 16 L 616 16 A 48 48 0 0 1 664 64 L 664 286 A 48 48 0 0 1 616 334 L 64 334 A 48 48 0 0 1 16 286 L 16 64 A 48 48 0 0 1 64 16 L 340 16 Z"
-                className={`stadium-track-laser ${canvasMode === "running" ? "active" : ""}`}
-                pathLength="1000"
-                strokeDasharray="1000"
-                strokeDashoffset={1000 * (1 - progressRatio)}
-              />
-            </svg>
+            {/* Minutes */}
+            <div className="digit-column">
+              <button
+                type="button"
+                className="digit-arrow-btn"
+                onPointerDown={(e) => { e.preventDefault(); startHold(60); }}
+                onPointerUp={stopHold}
+                onPointerLeave={stopHold}
+                onPointerCancel={stopHold}
+                title="+1 Minute"
+              >
+                ▲
+              </button>
+              <span className="digit-num">{pad2(minutes)}</span>
+              <button
+                type="button"
+                className="digit-arrow-btn"
+                onPointerDown={(e) => { e.preventDefault(); startHold(-60); }}
+                onPointerUp={stopHold}
+                onPointerLeave={stopHold}
+                onPointerCancel={stopHold}
+                title="-1 Minute"
+              >
+                ▼
+              </button>
+              <span className="digit-label">MINUTES</span>
+            </div>
 
-            {/* SCREEN INNER CONTENT: 3 States (Selection, Running/Paused Eyes, Finished) */}
-            <div className="stadium-screen-viewport">
-              {/* STATE 1: SELECTION MODE (Collapses on start) */}
-              <div className={`stadium-mode-selection ${canvasMode === "selection" ? "visible" : "collapsed"}`}>
-                <div className="stopwatch-digits-row">
-                  {/* Hours */}
-                  <div className="stopwatch-digit-unit">
-                    <button
-                      type="button"
-                      className="digit-adjust-btn"
-                      onPointerDown={(e) => { e.preventDefault(); startHold(3600); }}
-                      onPointerUp={stopHold}
-                      onPointerLeave={stopHold}
-                      onPointerCancel={stopHold}
-                      title="+1 Hour (Hold to fast-forward)"
-                    >
-                      ▲
-                    </button>
-                    <span className="digit-value">{pad2(hours)}</span>
-                    <button
-                      type="button"
-                      className="digit-adjust-btn"
-                      onPointerDown={(e) => { e.preventDefault(); startHold(-3600); }}
-                      onPointerUp={stopHold}
-                      onPointerLeave={stopHold}
-                      onPointerCancel={stopHold}
-                      title="-1 Hour (Hold to fast-rewind)"
-                    >
-                      ▼
-                    </button>
-                    <span className="digit-unit-label">HOURS</span>
-                  </div>
+            <span className="digit-separator">:</span>
 
-                  <span className="stopwatch-colon">:</span>
-
-                  {/* Minutes */}
-                  <div className="stopwatch-digit-unit">
-                    <button
-                      type="button"
-                      className="digit-adjust-btn"
-                      onPointerDown={(e) => { e.preventDefault(); startHold(60); }}
-                      onPointerUp={stopHold}
-                      onPointerLeave={stopHold}
-                      onPointerCancel={stopHold}
-                      title="+1 Min (Hold to fast-forward)"
-                    >
-                      ▲
-                    </button>
-                    <span className="digit-value">{pad2(minutes)}</span>
-                    <button
-                      type="button"
-                      className="digit-adjust-btn"
-                      onPointerDown={(e) => { e.preventDefault(); startHold(-60); }}
-                      onPointerUp={stopHold}
-                      onPointerLeave={stopHold}
-                      onPointerCancel={stopHold}
-                      title="-1 Min (Hold to fast-rewind)"
-                    >
-                      ▼
-                    </button>
-                    <span className="digit-unit-label">MINUTES</span>
-                  </div>
-
-                  <span className="stopwatch-colon">:</span>
-
-                  {/* Seconds */}
-                  <div className="stopwatch-digit-unit">
-                    <button
-                      type="button"
-                      className="digit-adjust-btn"
-                      onPointerDown={(e) => { e.preventDefault(); startHold(1); }}
-                      onPointerUp={stopHold}
-                      onPointerLeave={stopHold}
-                      onPointerCancel={stopHold}
-                      title="+1 Sec (Hold to fast-forward)"
-                    >
-                      ▲
-                    </button>
-                    <span className="digit-value">{pad2(seconds)}</span>
-                    <button
-                      type="button"
-                      className="digit-adjust-btn"
-                      onPointerDown={(e) => { e.preventDefault(); startHold(-1); }}
-                      onPointerUp={stopHold}
-                      onPointerLeave={stopHold}
-                      onPointerCancel={stopHold}
-                      title="-1 Sec (Hold to fast-rewind)"
-                    >
-                      ▼
-                    </button>
-                    <span className="digit-unit-label">SECONDS</span>
-                  </div>
-                </div>
-
-                <span className="stadium-selection-hint">Tap or hold arrows to adjust • Select quick presets below</span>
-              </div>
-
-              {/* STATE 2: RUNNING & PAUSED MODES (Canonical Rufus OLED Face Tracking Perimeter Laser) */}
-              <div className={`stadium-mode-running ${canvasMode === "running" || canvasMode === "paused" ? "visible" : "hidden"}`}>
-                <div className="stadium-oled-screen-frame">
-                  {/* Left Eye */}
-                  <div
-                    className="stadium-rufus-eye-socket"
-                    style={{
-                      transform: `translate(${pupilOffset.x}px, ${pupilOffset.y}px)`,
-                    }}
-                  >
-                    <div className="stadium-rufus-eye" />
-                  </div>
-
-                  {/* Right Eye */}
-                  <div
-                    className="stadium-rufus-eye-socket"
-                    style={{
-                      transform: `translate(${pupilOffset.x}px, ${pupilOffset.y}px)`,
-                    }}
-                  >
-                    <div className="stadium-rufus-eye" />
-                  </div>
-                </div>
-
-                <div className="stadium-running-time-display">
-                  <span className={`running-digital-text ${canvasMode === "paused" ? "paused" : ""}`}>
-                    {pad2(Math.floor(remainingSeconds / 60))}:{pad2(remainingSeconds % 60)}
-                  </span>
-                </div>
-              </div>
-
-              {/* STATE 3: FINISHED MODE */}
-              <div className={`stadium-mode-finished ${canvasMode === "finished" ? "visible" : "hidden"}`}>
-                <div className="finished-trophy-icon">
-                  <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-                    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-                    <path d="M4 22h16" />
-                    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
-                    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
-                    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
-                  </svg>
-                </div>
-                <h3 className="finished-headline">Focus Interval Completed!</h3>
-                <p className="finished-summary">
-                  Logged {Math.round(totalSeconds / 60)}m of pure focus • Breaks: {breakCount} ({Math.round(totalBreakSeconds / 60)}m total)
-                </p>
-                <button type="button" className="finished-replay-btn" onClick={handleReset}>
-                  Replay Interval
-                </button>
-              </div>
+            {/* Seconds (Can go down to 1s) */}
+            <div className="digit-column">
+              <button
+                type="button"
+                className="digit-arrow-btn"
+                onPointerDown={(e) => { e.preventDefault(); startHold(1); }}
+                onPointerUp={stopHold}
+                onPointerLeave={stopHold}
+                onPointerCancel={stopHold}
+                title="+1 Second"
+              >
+                ▲
+              </button>
+              <span className="digit-num">{pad2(seconds)}</span>
+              <button
+                type="button"
+                className="digit-arrow-btn"
+                onPointerDown={(e) => { e.preventDefault(); startHold(-1); }}
+                onPointerUp={stopHold}
+                onPointerLeave={stopHold}
+                onPointerCancel={stopHold}
+                title="-1 Second"
+              >
+                ▼
+              </button>
+              <span className="digit-label">SECONDS</span>
             </div>
           </div>
+        )}
 
-          {/* BOTTOM 5 ACTION BUTTONS (Refined Vector SVGs) */}
-          <div className="focus-action-bar-cluster">
-            {/* Mode Switch Toast Pill */}
-            {modeToast && <div className="focus-mode-toast-pill">{modeToast}</div>}
+        {/* State 2: RUNNING & PAUSED MODES (Massive 156px Typography Spanning 75% Width) */}
+        {(canvasMode === "running" || canvasMode === "paused") && (
+          <div className="centerpiece-digits-running">
+            <span className={`giant-countdown-text ${canvasMode === "paused" ? "is-paused" : ""}`}>
+              {hours > 0 ? `${pad2(hours)}:${pad2(minutes)}:${pad2(seconds)}` : `${pad2(minutes)}:${pad2(seconds)}`}
+            </span>
+            <span className="countdown-subtext">
+              {canvasMode === "paused" ? "TIMER PAUSED • TAP PLAY TO RESUME" : `${profile.toUpperCase()} FOCUS SESSION IN PROGRESS`}
+            </span>
+          </div>
+        )}
 
-            {/* Button 1: Focus Profile Toggle (Bullseye Target w/ 2 Arrows for Deep Focus, Dual Arrows for Casual) */}
-            <button
-              type="button"
-              className={`focus-action-btn btn-mode-toggle ${profile === "deep" ? "mode-deep" : "mode-casual"}`}
-              onClick={handleToggleProfile}
-              title={profile === "deep" ? "Deep Focus: Bullseye Active (Zero Distraction)" : "Casual Mode: Dual Arrows Active (Break Leniency)"}
-            >
-              {profile === "deep" ? (
-                /* Bullseye Target with Two Piercing Arrows */
-                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-                  {/* Concentric Bullseye Rings */}
-                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" opacity="0.6" />
-                  <circle cx="12" cy="12" r="5" stroke="#00e5ff" strokeWidth="1.8" />
-                  <circle cx="12" cy="12" r="1.6" fill="#00e5ff" />
-                  {/* Arrow 1 striking bullseye from top-left */}
-                  <path d="M3 3l6.5 6.5" stroke="#00e5ff" strokeWidth="2.1" />
-                  <path d="M5.5 9.5H9.5V5.5" stroke="#00e5ff" strokeWidth="2.1" />
-                  {/* Arrow 2 striking bullseye from top-right */}
-                  <path d="M21 3l-6.5 6.5" stroke="#00e5ff" strokeWidth="2.1" />
-                  <path d="M18.5 9.5h-4V5.5" stroke="#00e5ff" strokeWidth="2.1" />
-                </svg>
-              ) : (
-                /* Dual Arrows Only (Casual Flow Mode) */
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  {/* Flow Arrow 1 */}
-                  <path d="M4 8h12" />
-                  <path d="M12 4l4 4-4 4" />
-                  {/* Flow Arrow 2 */}
-                  <path d="M8 16h12" />
-                  <path d="M16 12l4 4-4 4" />
-                </svg>
-              )}
-            </button>
-
-            {/* Button 2: Replay / Reset */}
-            <button
-              type="button"
-              className="focus-action-btn btn-reset"
-              onClick={handleReset}
-              title="Reset Timer to Initial Duration"
-            >
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                <path d="M3 3v5h5" />
-              </svg>
-            </button>
-
-            {/* Button 3: Main Play / Pause (Enlarged) */}
-            <button
-              type="button"
-              className={`focus-action-btn btn-play-main ${canvasMode === "running" ? "running" : ""}`}
-              onClick={handleTogglePlay}
-              title={canvasMode === "running" ? "Pause Timer" : "Start Focus"}
-            >
-              {canvasMode === "running" ? (
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                  <rect x="6" y="4" width="4" height="16" rx="1.5" />
-                  <rect x="14" y="4" width="4" height="16" rx="1.5" />
-                </svg>
-              ) : (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <polygon points="6 4 20 12 6 20 6 4" />
-                </svg>
-              )}
-            </button>
-
-            {/* Button 4: +5m Fast-Forward Extend */}
-            <button
-              type="button"
-              className="focus-action-btn btn-extend"
-              onClick={() => handleAddMinutes(5)}
-              title="Add 5 Minutes to Timer"
-            >
-              <span className="btn-extend-typography">+5m</span>
-            </button>
-
-            {/* Button 5: Early Complete / Flag */}
-            <button
-              type="button"
-              className="focus-action-btn btn-finish-early"
-              onClick={handleCompleteEarly}
-              title="Finish Session Early & Claim Session"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-                <line x1="4" y1="22" x2="4" y2="15" />
-              </svg>
+        {/* State 3: FINISHED MODE */}
+        {canvasMode === "finished" && (
+          <div className="centerpiece-finished-banner">
+            <div className="finished-badge-icon">🏆</div>
+            <h2 className="finished-title">Focus Interval Complete!</h2>
+            <p className="finished-desc">
+              Logged {Math.round(totalSeconds / 60)} minutes of deep work. Great job!
+            </p>
+            <button type="button" className="finished-action-btn" onClick={handleReset}>
+              Replay Focus Session
             </button>
           </div>
+        )}
 
-          {/* BOTTOM DOCK: Selectable Timers (Left) & Expandable Trophies (Right) */}
-          <div className="focus-bottom-dock">
-            {/* Left Section: Selectable Timers Capsules */}
-            <div className="dock-timers-section">
-              <div className="dock-section-header">
-                <div className="dock-header-title-row">
-                  <span className="dock-section-title">Selectable Timers</span>
-                  <span className="dock-section-badge">{presets.length} options</span>
+        {/* 3. 7-BUTTON CRESTING ACTION CLUSTER: 3 LEFT + 1 CENTER + 3 RIGHT */}
+        <div className="focus-bubble-dock">
+          {modeToast && <div className="bubble-dock-toast">{modeToast}</div>}
+
+          {/* Button 1 (Left - Small 38px): Focus Mode (Deep / Casual) */}
+          <button
+            type="button"
+            className={`bubble-btn bubble-sm ${profile === "deep" ? "mode-deep" : "mode-casual"}`}
+            onClick={handleToggleProfile}
+            title={profile === "deep" ? "Deep Focus: Bullseye Active (Strict Guard)" : "Casual Flow: Dual Arrows Active (Leniency)"}
+          >
+            {profile === "deep" ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" opacity="0.6" />
+                <circle cx="12" cy="12" r="5" stroke="#00e5ff" strokeWidth="1.8" />
+                <circle cx="12" cy="12" r="1.6" fill="#00e5ff" />
+                <path d="M3 3l6.5 6.5" stroke="#00e5ff" strokeWidth="2.1" />
+                <path d="M5.5 9.5H9.5V5.5" stroke="#00e5ff" strokeWidth="2.1" />
+                <path d="M21 3l-6.5 6.5" stroke="#00e5ff" strokeWidth="2.1" />
+                <path d="M18.5 9.5h-4V5.5" stroke="#00e5ff" strokeWidth="2.1" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 8h12" />
+                <path d="M12 4l4 4-4 4" />
+                <path d="M8 16h12" />
+                <path d="M16 12l4 4-4 4" />
+              </svg>
+            )}
+          </button>
+
+          {/* Button 2 (Left - Medium 44px): Reset / Replay */}
+          <button
+            type="button"
+            className="bubble-btn bubble-md"
+            onClick={handleReset}
+            title="Reset Timer to Initial Duration"
+          >
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+            </svg>
+          </button>
+
+          {/* Button 3 (Left - Medium-Large 48px): Chime Sound Toggle */}
+          <button
+            type="button"
+            className={`bubble-btn bubble-md-lg ${isSoundEnabled ? "sound-active" : "sound-muted"}`}
+            onClick={() => setIsSoundEnabled((s) => !s)}
+            title={isSoundEnabled ? "Chime Audio: Enabled" : "Chime Audio: Muted"}
+          >
+            {isSoundEnabled ? (
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+              </svg>
+            ) : (
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                <line x1="23" y1="9" x2="17" y2="15" />
+                <line x1="17" y1="9" x2="23" y2="15" />
+              </svg>
+            )}
+          </button>
+
+          {/* Button 4 (Center - Largest 66px): Play / Pause */}
+          <button
+            type="button"
+            className={`bubble-btn bubble-lg ${canvasMode === "running" ? "running" : ""}`}
+            onClick={handleTogglePlay}
+            title={canvasMode === "running" ? "Pause Timer" : "Start Focus"}
+          >
+            {canvasMode === "running" ? (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="4" width="4" height="16" rx="1.5" />
+                <rect x="14" y="4" width="4" height="16" rx="1.5" />
+              </svg>
+            ) : (
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="6 4 20 12 6 20 6 4" />
+              </svg>
+            )}
+          </button>
+
+          {/* Button 5 (Right - Medium-Large 48px): +30s Fast Increment */}
+          <button
+            type="button"
+            className="bubble-btn bubble-md-lg"
+            onClick={() => handleAddSeconds(30)}
+            title="Add 30 Seconds to Timer"
+          >
+            <span className="bubble-text-btn">+30s</span>
+          </button>
+
+          {/* Button 6 (Right - Medium 44px): +5m Increment */}
+          <button
+            type="button"
+            className="bubble-btn bubble-md"
+            onClick={() => handleAddMinutes(5)}
+            title="Add 5 Minutes to Timer"
+          >
+            <span className="bubble-text-btn">+5m</span>
+          </button>
+
+          {/* Button 7 (Right - Small 38px): +15m Increment */}
+          <button
+            type="button"
+            className="bubble-btn bubble-sm"
+            onClick={() => handleAddMinutes(15)}
+            title="Add 15 Minutes to Timer"
+          >
+            <span className="bubble-text-btn">+15m</span>
+          </button>
+        </div>
+      </main>
+
+      {/* 4. SLIDING GLASSMORPHIC DRAWER WITH RIDING CYAN TRAPEZOID HANDLE */}
+      <section className={`focus-analytics-drawer ${isDrawerOpen ? "open" : "closed"}`}>
+        {/* Cyan Trapezoid Handle attached to the top rim of the drawer */}
+        <div
+          className="drawer-trapezoid-handle"
+          onClick={() => setIsDrawerOpen((prev) => !prev)}
+          title={isDrawerOpen ? "Slide Down to Timer" : "Slide Up Deep Focus Analytics & History"}
+        >
+          <span className="trapezoid-arrow">{isDrawerOpen ? "▼" : "▲"}</span>
+        </div>
+
+        {/* Drawer Interior: 70% Left Pane (Analytics) / 30% Right Pane (Recent Timers & Trophies) */}
+        <div className="drawer-body-grid">
+          {/* Left Column (70%): Deep Focus Graph + Most Used Apps & Websites */}
+          <div className="drawer-left-pane">
+            {/* Deep Focus Velocity Chart */}
+            <div className="drawer-card deep-focus-chart-card">
+              <div className="card-header-row">
+                <div>
+                  <h3 className="card-title">Deep Focus Velocity</h3>
+                  <span className="card-subtitle">Daily focus distribution over the last 7 days</span>
                 </div>
-                <button
-                  type="button"
-                  className="dock-add-preset-btn"
-                  onClick={() => setIsAddingPreset((p) => !p)}
-                  title="Add Custom Timer Preset"
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  <span>Add</span>
-                </button>
+                <div className="card-stat-badge">
+                  <span className="badge-val">4.4h</span>
+                  <span className="badge-lbl">Daily Avg</span>
+                </div>
               </div>
 
-              {/* Inline Add Preset Form */}
-              {isAddingPreset && (
-                <form className="dock-inline-add-form" onSubmit={handleCreatePreset}>
-                  <input
-                    type="text"
-                    className="dock-preset-input"
-                    placeholder="Timer label..."
-                    value={newPresetName}
-                    onChange={(e) => setNewPresetName(e.target.value)}
-                    autoFocus
-                  />
-                  <div className="dock-form-row">
-                    <input
-                      type="number"
-                      className="dock-preset-number"
-                      min="1"
-                      max="180"
-                      value={newPresetMinutes}
-                      onChange={(e) => setNewPresetMinutes(Number(e.target.value))}
-                    />
-                    <span className="dock-mins-label">mins</span>
-                    <button type="submit" className="dock-save-btn">Save</button>
-                    <button type="button" className="dock-cancel-btn" onClick={() => setIsAddingPreset(false)}>✕</button>
-                  </div>
-                </form>
-              )}
-
-              {/* Timer Capsules Track */}
-              <div className="dock-capsules-track">
-                {presets.map((p) => {
-                  const isSelected = totalSeconds === p.seconds;
+              {/* 7-Day Bar Chart */}
+              <div className="cyber-bar-chart">
+                {WEEKLY_METRICS.map((m) => {
+                  const maxH = 8.0;
+                  const heightPct = Math.round((m.hours / maxH) * 100);
                   return (
-                    <div
-                      key={p.id}
-                      className={`dock-timer-capsule ${isSelected ? "selected" : ""}`}
-                      onClick={() => handleSelectPreset(p)}
-                      title={`Click to set timer to ${Math.round(p.seconds / 60)} minutes`}
-                    >
-                      <span className="capsule-name">{p.name}</span>
-                      <span className="capsule-time-tag">{Math.round(p.seconds / 60)}m</span>
-                      {p.isCustom && (
-                        <button
-                          type="button"
-                          className="capsule-delete-btn"
-                          onClick={(e) => handleDeletePreset(p.id, e)}
-                          title="Delete custom preset"
-                        >
-                          ✕
-                        </button>
-                      )}
+                    <div key={m.day} className={`chart-bar-col ${m.isPeak ? "is-peak" : ""}`}>
+                      <div className="bar-track">
+                        <div className="bar-fill" style={{ height: `${heightPct}%` }}>
+                          <span className="bar-tooltip">{m.hours}h</span>
+                        </div>
+                      </div>
+                      <span className="bar-day-label">{m.day}</span>
+                      {m.isPeak && <span className="peak-tag">PEAK</span>}
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            {/* Right Section: Compact Award Pill with Upward-Expanding Flyout HUD */}
-            <div
-              className={`dock-trophy-widget ${isTrophyOpen || isTrophyHovered ? "open" : ""}`}
-              onClick={() => setIsTrophyOpen((prev) => !prev)}
-              onMouseEnter={() => setIsTrophyHovered(true)}
-              onMouseLeave={() => setIsTrophyHovered(false)}
-            >
-              {/* Flyout Popover: Expands Upward */}
-              <div
-                className={`trophy-flyout-hud ${isTrophyOpen || isTrophyHovered ? "visible" : ""}`}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flyout-hud-header">
-                  <div className="flyout-hud-title-wrap">
-                    <span className="flyout-hud-icon">🏆</span>
-                    <span className="flyout-hud-title">Achievement & Focus Metrics</span>
-                  </div>
-                  <button
-                    type="button"
-                    className="flyout-hud-close-btn"
-                    onClick={() => { setIsTrophyOpen(false); setIsTrophyHovered(false); }}
-                    title="Close metrics"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <div className="flyout-stats-grid">
-                  {/* Streak */}
-                  <div className="flyout-stat-card streak">
-                    <div className="flyout-stat-icon-wrap fire">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
-                      </svg>
-                    </div>
-                    <div className="flyout-stat-content">
-                      <span className="flyout-stat-value">{streakDays} Days</span>
-                      <span className="flyout-stat-label">Current Streak</span>
-                    </div>
-                  </div>
-
-                  {/* Sessions Completed Today */}
-                  <div className="flyout-stat-card sessions">
-                    <div className="flyout-stat-icon-wrap target">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="m9 12 2 2 4-4" />
-                      </svg>
-                    </div>
-                    <div className="flyout-stat-content">
-                      <span className="flyout-stat-value">{completedSessions} Sessions</span>
-                      <span className="flyout-stat-label">Completed Today</span>
-                    </div>
-                  </div>
-
-                  {/* Focus Hours Logged */}
-                  <div className="flyout-stat-card time">
-                    <div className="flyout-stat-icon-wrap clock">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                      </svg>
-                    </div>
-                    <div className="flyout-stat-content">
-                      <span className="flyout-stat-value">{Math.floor(totalFocusMinutes / 60)}h {totalFocusMinutes % 60}m</span>
-                      <span className="flyout-stat-label">Focus Logged</span>
-                    </div>
-                  </div>
-
-                  {/* Break Leniency Stats */}
-                  <div className="flyout-stat-card breaks">
-                    <div className="flyout-stat-icon-wrap coffee">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-                        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
-                        <line x1="6" y1="1" x2="6" y2="4" />
-                        <line x1="10" y1="1" x2="10" y2="4" />
-                        <line x1="14" y1="1" x2="14" y2="4" />
-                      </svg>
-                    </div>
-                    <div className="flyout-stat-content">
-                      <span className="flyout-stat-value">{breakCount} ({Math.round(totalBreakSeconds / 60)}m)</span>
-                      <span className="flyout-stat-label">Break Leniency</span>
-                    </div>
-                  </div>
-                </div>
+            {/* Most Used Apps and Websites */}
+            <div className="drawer-card app-usage-card">
+              <div className="card-header-row">
+                <h3 className="card-title">Most Used Apps & Websites</h3>
+                <span className="card-subtitle">Tracked focus allocation during active sessions</span>
               </div>
 
-              {/* Compact Award Capsule Button */}
-              <div className="trophy-award-pill">
-                <div className="trophy-glow-icon">
-                  🏆
+              <div className="app-usage-grid">
+                {APP_USAGE_DATA.map((app) => (
+                  <div key={app.id} className="app-usage-tile">
+                    <div className="tile-top-row">
+                      <span className="tile-icon">{app.icon}</span>
+                      <span className="tile-name">{app.name}</span>
+                      <span className="tile-time">{app.timeSpent}</span>
+                    </div>
+                    <div className="tile-bar-wrap">
+                      <div className="tile-bar-fill" style={{ width: `${app.percentage}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column (30%): Recent Timers & Trophies Cluster */}
+          <div className="drawer-right-pane">
+            {/* Recent Timers Section */}
+            <div className="drawer-card recent-timers-card">
+              <div className="card-header-row">
+                <h3 className="card-title">Recent Timers</h3>
+                <span className="card-badge">{presets.length} Presets</span>
+              </div>
+
+              <div className="recent-timers-list">
+                {presets.map((preset) => (
+                  <div
+                    key={preset.id}
+                    className="recent-timer-item"
+                    onClick={() => handleSelectPreset(preset)}
+                    title={`Click to set timer to ${Math.round(preset.seconds / 60)} minutes`}
+                  >
+                    <div className="item-info">
+                      <span className="item-name">{preset.name}</span>
+                      <span className="item-duration">{Math.round(preset.seconds / 60)} mins</span>
+                    </div>
+                    <button type="button" className="item-launch-btn">
+                      ▶
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Quick Save Current as Preset Button */}
+              <button
+                type="button"
+                className="save-current-preset-btn"
+                onClick={() => {
+                  const mins = Math.round(totalSeconds / 60);
+                  const newPreset: TimerPreset = {
+                    id: `p-${Date.now()}`,
+                    name: `Focus ${mins}m`,
+                    seconds: totalSeconds,
+                    type: "focus",
+                    isCustom: true,
+                  };
+                  setPresets((prev) => [...prev, newPreset]);
+                }}
+              >
+                + Save Current ({Math.round(totalSeconds / 60)}m) as Preset
+              </button>
+            </div>
+
+            {/* Trophies & Achievements (Bottom Right) */}
+            <div className="drawer-card trophies-card">
+              <div className="card-header-row">
+                <div className="trophy-title-wrap">
+                  <span className="trophy-head-icon">🏆</span>
+                  <h3 className="card-title">Achievements</h3>
                 </div>
-                <div className="trophy-pill-text">
-                  <span className="trophy-pill-label">Trophies</span>
-                  <span className="trophy-pill-val">{streakDays}d Streak • {completedSessions} Done</span>
+                <span className="trophy-streak-pill">🔥 {streakDays}d Streak</span>
+              </div>
+
+              <div className="trophies-stats-row">
+                <div className="trophy-metric-box">
+                  <span className="metric-val">{completedSessions}</span>
+                  <span className="metric-lbl">Sessions Done</span>
                 </div>
-                <span className="trophy-pill-caret">▲</span>
+                <div className="trophy-metric-box">
+                  <span className="metric-val">{Math.floor(totalFocusMinutes / 60)}h {totalFocusMinutes % 60}m</span>
+                  <span className="metric-lbl">Total Logged</span>
+                </div>
+                <div className="trophy-metric-box">
+                  <span className="metric-val">{breakCount} ({Math.round(totalBreakSeconds / 60)}m)</span>
+                  <span className="metric-lbl">Breaks Taken</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };
