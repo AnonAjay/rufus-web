@@ -4,6 +4,8 @@ export interface ChatMessage {
   text: string;
   timestamp: string;
   actions?: string[];
+  actionType?: 'speech' | 'action';
+  confidence?: number;
   modelUsed?: string;
   accuracy?: string;
   authorization?: {
@@ -18,6 +20,8 @@ export interface ChatMessage {
 export interface AgentChatResponse {
   reply: string;
   model_used: string;
+  action_type?: string;
+  confidence?: number;
   actions: string[];
 }
 
@@ -25,6 +29,8 @@ export interface AgentVoiceResponse {
   transcript: string;
   reply_text: string;
   model_used: string;
+  action_type?: string;
+  confidence?: number;
   audio_base64: string;
   audio_mime_type: string;
   actions: string[];

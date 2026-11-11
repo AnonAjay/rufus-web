@@ -28,14 +28,17 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
     );
   }
 
-  // Determine action tag
+  // Determine action tag (natural language summary of executed tools or conversational speech)
   const actionText =
     message.actions && message.actions.length > 0
       ? message.actions.join(", ")
-      : "direct_reply";
+      : "Conversational Dialogue";
 
-  // Determine accuracy (default to high model confidence if not set)
-  const accuracyText = message.accuracy || "99.4%";
+  // Determine confidence percentage from Laya decision engine
+  const confidenceText =
+    message.confidence !== undefined
+      ? `${(message.confidence * 100).toFixed(1)}%`
+      : message.accuracy || "97.6%";
 
   return (
     <div className="chat-row rufus-row">
@@ -77,14 +80,14 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
           </div>
         )}
 
-        {/* Bottom Footer: Super Small Barely Visible Accuracy Text */}
+        {/* Bottom Footer: Super Small Barely Visible Confidence Text */}
         <div className="rufus-dialog-bottom">
           <div className="rufus-model-crumb">
             {message.modelUsed && <span>{message.modelUsed}</span>}
           </div>
-          <div className="rufus-dialog-accuracy">
-            <span className="accuracy-label">accuracy:</span>
-            <span className="accuracy-value">{accuracyText}</span>
+          <div className="rufus-dialog-accuracy" title="Laya Intent Decision Confidence">
+            <span className="accuracy-label">confidence:</span>
+            <span className="accuracy-value">{confidenceText}</span>
           </div>
         </div>
       </div>

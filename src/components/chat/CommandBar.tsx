@@ -72,6 +72,7 @@ export const CommandBar: React.FC<CommandBarProps> = ({
   const plusBtnRef = useRef<HTMLButtonElement>(null);
   const modelPopoverRef = useRef<HTMLDivElement>(null);
   const modelBtnRef = useRef<HTMLButtonElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const {
     isRecording,
@@ -80,6 +81,14 @@ export const CommandBar: React.FC<CommandBarProps> = ({
     stopRecording,
     error: micError,
   } = useAudioRecorder();
+
+  // Auto-resize textarea dynamically based on scrollHeight
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 180)}px`;
+    }
+  }, [input]);
 
   // Track elapsed recording time
   useEffect(() => {
@@ -155,6 +164,18 @@ export const CommandBar: React.FC<CommandBarProps> = ({
     setInput("");
     setAttachedFiles([]);
     setIsAttachOpen(false);
+
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
+  };
+
+  // Keyboard shortcut: Enter to send, Shift+Enter for newline
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleTextSubmit();
+    }
   };
 
   // Toggle voice recording
@@ -210,16 +231,16 @@ export const CommandBar: React.FC<CommandBarProps> = ({
   const displayWaveform = waveformBars.length > 0 ? waveformBars : Array(24).fill(0.12);
 
   return (
-    <div className={`command-bar-wrapper ${isRecording ? "recording-active" : ""}`}>
+    <div className={`command-bar-wrapper expandable-capsule ${isRecording ? "recording-active" : ""}`}>
       {micError && <div className="mic-error-banner">Microphone Notice: {micError}</div>}
 
-      {/* Attachments Preview Row */}
+      {/* Floating Attachments Preview */}
       {attachedFiles.length > 0 && (
-        <div className="command-attachments-preview">
+        <div className="command-attachments-floating">
           {attachedFiles.map((file, idx) => (
             <div key={idx} className="attach-chip">
               <span>{file.type === "image" ? "📸" : file.type === "pdf" ? "📄" : "📎"}</span>
-              <span>{file.name}</span>
+              <span className="attach-chip-text">{file.name}</span>
               <button
                 type="button"
                 className="chip-remove-btn"
@@ -291,7 +312,7 @@ export const CommandBar: React.FC<CommandBarProps> = ({
         <div className="command-model-popover" ref={modelPopoverRef}>
           <div className="model-popover-header">
             <span className="model-popover-title">SELECT INFERENCE MODEL</span>
-            <span className="model-popover-badge">DB Placeholder</span>
+            <span className="model-popover-badge">DB Active</span>
           </div>
           <div className="model-options-list">
             {PLACEHOLDER_MODELS.map((model) => {
@@ -341,82 +362,97 @@ export const CommandBar: React.FC<CommandBarProps> = ({
         </div>
       )}
 
-      <form className="command-form" onSubmit={handleTextSubmit}>
-        {/* Left: Plus Attachment Button with + to X rotation */}
-        <button
-          ref={plusBtnRef}
-          type="button"
-          className={`command-action-circle-btn command-plus-btn ${isAttachOpen ? "open" : ""}`}
-          onClick={() => setIsAttachOpen((prev) => !prev)}
-          disabled={isLoading || disabled}
-          title={isAttachOpen ? "Close attachment options" : "Add context (screenshot, docs, code)"}
-        >
-          <span className="command-plus-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-          </span>
-        </button>
+      {/* Capsule Form Container */}
+      <form className="command-form capsule-form" onSubmit={handleTextSubmit}>
+        {/* Left Action: Plus Attachment Button */}
+        <div className="capsule-action-left">
+          <button
+            ref={plusBtnRef}
+            type="button"
+            className={`capsule-pill-btn command-plus-btn ${isAttachOpen ? "open" : ""}`}
+            onClick={() => setIsAttachOpen((prev) => !prev)}
+            disabled={isLoading || disabled}
+            title={isAttachOpen ? "Close attachment options" : "Add context (screenshot, docs, code)"}
+          >
+            <span className="command-plus-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </span>
+          </button>
+        </div>
 
-        {/* Center: Two States (Text Bar vs Voice Waveform Bar) */}
-        {!isRecording ? (
-          <div className="command-input-container">
-            <input
-              type="text"
-              className="command-input"
-              placeholder="Ask Rufus or type a command..."
+        {/* Center: Auto-Expanding Multiline Textarea or Live Audio Waveform */}
+        <div className="capsule-input-area">
+          {!isRecording ? (
+            <textarea
+              ref={textareaRef}
+              className="capsule-textarea"
+              placeholder="Ask Rufus anything..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
               disabled={isLoading || disabled}
+              rows={1}
               autoFocus
             />
-          </div>
-        ) : (
-          <div className="command-voice-display">
-            <div className="voice-live-badge">
-              <span className="voice-pulse-dot" />
-              <span className="voice-time-label">{formatRecordingTime(recordingSeconds)}</span>
+          ) : (
+            <div className="command-voice-display">
+              <div className="voice-live-badge">
+                <span className="voice-pulse-dot" />
+                <span className="voice-time-label">{formatRecordingTime(recordingSeconds)}</span>
+              </div>
+
+              <div className="voice-waveform-stream">
+                {displayWaveform.map((bar, idx) => (
+                  <div
+                    key={idx}
+                    className="voice-wave-bar"
+                    style={{
+                      height: `${Math.max(4, Math.min(22, Math.round(bar * 24)))}px`,
+                    }}
+                  />
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className="voice-cancel-btn"
+                onClick={handleCancelVoice}
+                title="Cancel recording"
+              >
+                ✕
+              </button>
             </div>
+          )}
+        </div>
 
-            <div className="voice-waveform-stream">
-              {displayWaveform.map((bar, idx) => (
-                <div
-                  key={idx}
-                  className="voice-wave-bar"
-                  style={{
-                    height: `${Math.max(4, Math.min(26, Math.round(bar * 28)))}px`,
-                  }}
-                />
-              ))}
-            </div>
-
-            <button
-              type="button"
-              className="voice-cancel-btn"
-              onClick={handleCancelVoice}
-              title="Cancel recording"
-            >
-              ✕
-            </button>
-          </div>
-        )}
-
-        {/* Right: Three Circular Buttons (Model, Voice, Send) - Icons Only */}
-        <div className="command-right-cluster">
-          {/* Button 1: AI Model Selector Drop-up */}
+        {/* Right Actions: Model Selector, Voice Mic, and Circular Up-Arrow Send */}
+        <div className="capsule-actions-right">
+          {/* Button 1: AI Model Selector (Icon-only with live active provider glow) */}
           <button
             ref={modelBtnRef}
             type="button"
-            className={`command-action-circle-btn btn-model ${isModelOpen ? "open" : ""}`}
+            className={`capsule-pill-btn btn-model ${isModelOpen ? "open" : ""}`}
             onClick={() => {
               setIsAttachOpen(false);
               setIsModelOpen((prev) => !prev);
             }}
             disabled={isLoading || disabled}
-            title={`Select Model (Active: ${activeModel.name})`}
+            title={`Active Engine: ${activeModel.name} (${activeModel.provider})`}
           >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke={activeModel.badgeColor}
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ filter: `drop-shadow(0 0 4px ${activeModel.badgeColor}99)` }}
+            >
               <rect x="4" y="4" width="16" height="16" rx="2" />
               <rect x="9" y="9" width="6" height="6" />
               <line x1="9" y1="1" x2="9" y2="4" />
@@ -433,12 +469,12 @@ export const CommandBar: React.FC<CommandBarProps> = ({
           {/* Button 2: Voice Input / Waveform Toggle */}
           <button
             type="button"
-            className={`command-action-circle-btn btn-voice ${isRecording ? "recording" : ""}`}
+            className={`capsule-pill-btn btn-voice ${isRecording ? "recording" : ""}`}
             onClick={handleToggleVoice}
             disabled={isLoading || disabled}
             title={isRecording ? "Click to Stop & Send Voice" : "Click to Speak (Voice Input)"}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
               <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
               <line x1="12" y1="19" x2="12" y2="23"></line>
@@ -446,17 +482,17 @@ export const CommandBar: React.FC<CommandBarProps> = ({
             </svg>
           </button>
 
-          {/* Button 3: Send Command */}
+          {/* Button 3: Circular Up-Arrow Send Button */}
           <button
             type="submit"
-            className="command-action-circle-btn btn-send"
+            className="capsule-send-btn"
             disabled={(!input.trim() && !isRecording && attachedFiles.length === 0) || isLoading || disabled}
-            title={isRecording ? "Send Voice Recording" : "Send Command (Enter)"}
+            title={isRecording ? "Send Voice Recording" : "Send Message (Enter)"}
           >
             {isLoading ? (
               <span className="spinner" style={{ width: 14, height: 14 }} />
             ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="19" x2="12" y2="5"></line>
                 <polyline points="5 12 12 5 19 12"></polyline>
               </svg>

@@ -10,6 +10,7 @@ import { HistoryView } from "./components/history/HistoryView";
 import { FocusTimers } from "./components/productivity/FocusTimers";
 import { TasksReminders } from "./components/productivity/TasksReminders";
 import { AppsSkillsView } from "./components/apps/AppsSkillsView";
+import { PersonasView } from "./components/personas/PersonasView";
 import { useAgentChat } from "./hooks/useAgentChat";
 import "./App.css";
 
@@ -31,6 +32,9 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<NavTab>("assistant");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [activeFocusTask, setActiveFocusTask] = useState<string | undefined>();
+  const [activePersona, setActivePersona] = useState<string>(() => {
+    return localStorage.getItem("rufus_active_persona") || "auto";
+  });
 
   // Auto-scroll chat feed to bottom on new messages
   useEffect(() => {
@@ -68,9 +72,13 @@ export const App: React.FC = () => {
         />
 
         <main className="workspace-main-area">
-          {activeTab !== "assistant" && activeTab !== "history" && activeTab !== "focus" && activeTab !== "apps" && (
-            <ViewHeader activeTab={activeTab} isLive={true} />
-          )}
+          {activeTab !== "assistant" &&
+            activeTab !== "history" &&
+            activeTab !== "focus" &&
+            activeTab !== "apps" &&
+            activeTab !== "personas" && (
+              <ViewHeader activeTab={activeTab} isLive={true} />
+            )}
 
           <div className="workspace-content-pane">
             {/* TAB 1: ASSISTANT (MAIN CHAT) */}
@@ -197,32 +205,13 @@ export const App: React.FC = () => {
 
             {/* TAB 9: PERSONAS */}
             {activeTab === "personas" && (
-              <div className="views-generic-container">
-                <h3 style={{ margin: "0 0 12px 0", fontSize: 15, color: "#f8fafc" }}>Rufus Personality Profiles</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
-                  {[
-                    { name: "Desktop Companion", tone: "Warm, brief, voice-optimized (Current)", active: true },
-                    { name: "Technical Peer", tone: "Blunt, engineering-focused, no filler", active: false },
-                    { name: "Playful Pup", tone: "Expressive, animated OLED eye barks", active: false },
-                  ].map((p, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        padding: 16,
-                        background: p.active ? "rgba(0, 229, 255, 0.06)" : "rgba(255,255,255,0.03)",
-                        border: p.active ? "1px solid rgba(0, 229, 255, 0.3)" : "1px solid rgba(255,255,255,0.08)",
-                        borderRadius: 12,
-                      }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                        <span style={{ fontWeight: 600, fontSize: 14, color: "#f8fafc" }}>{p.name}</span>
-                        {p.active && <span style={{ fontSize: 11, color: "#00e5ff", fontWeight: 700 }}>ACTIVE</span>}
-                      </div>
-                      <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>{p.tone}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <PersonasView
+                activePersonaId={activePersona}
+                onSelectPersona={(id) => {
+                  setActivePersona(id);
+                  localStorage.setItem("rufus_active_persona", id);
+                }}
+              />
             )}
 
             {/* TAB 10: MEMORY EXPLORER (MAIN TASK) */}

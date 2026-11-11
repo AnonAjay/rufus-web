@@ -1,0 +1,269 @@
+/* PersonasView.css - Minimalist Persona Architecture */
+
+.personas-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 24px 32px 24px;
+  box-sizing: border-box;
+  animation: personas-fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes personas-fade-in {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* 1. TOP HEADER (Simple Minimalist Heading) */
+.personas-top-nav-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(15, 52, 96, 0.45);
+}
+
+.personas-title-cluster {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.personas-main-heading {
+  font-size: 26px;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.personas-count-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.personas-active-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  padding: 5px 12px;
+  border-radius: 9999px;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.1);
+}
+
+.personas-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #00e5ff;
+  box-shadow: 0 0 8px #00e5ff;
+  animation: persona-dot-pulse 1.4s infinite alternate ease-in-out;
+}
+
+@keyframes persona-dot-pulse {
+  0% { opacity: 0.4; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1.15); box-shadow: 0 0 12px #00e5ff; }
+}
+
+.personas-status-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.personas-status-name {
+  color: #00e5ff;
+  font-weight: 700;
+}
+
+/* 2. PERSONA CARDS GRID */
+.personas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+  width: 100%;
+}
+
+.persona-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: rgba(10, 15, 29, 0.85);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(15, 52, 96, 0.6);
+  border-radius: 16px;
+  padding: 22px;
+  box-sizing: border-box;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+
+.persona-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 229, 255, 0.35);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 16px rgba(0, 229, 255, 0.12);
+}
+
+.persona-card.active {
+  background: linear-gradient(145deg, rgba(16, 28, 54, 0.95) 0%, rgba(10, 15, 29, 0.98) 100%);
+  border: 1px solid rgba(0, 229, 255, 0.55);
+  box-shadow: 
+    0 12px 36px rgba(0, 0, 0, 0.65),
+    0 0 24px rgba(0, 229, 255, 0.18),
+    inset 0 1px 0 rgba(0, 229, 255, 0.3);
+}
+
+/* Card Header */
+.persona-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.persona-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.persona-card.active .persona-icon-box {
+  background: rgba(0, 229, 255, 0.12);
+  border-color: rgba(0, 229, 255, 0.4);
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.25);
+}
+
+.persona-header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.persona-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 3px 0;
+  letter-spacing: -0.01em;
+}
+
+.persona-tagline {
+  font-size: 12px;
+  color: #00e5ff;
+  font-weight: 600;
+  margin: 0;
+}
+
+.persona-active-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(0, 229, 255, 0.15);
+  border: 1px solid #00e5ff;
+  color: #00e5ff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+/* Card Body */
+.persona-card-body {
+  flex: 1;
+  margin-bottom: 18px;
+}
+
+.persona-description {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #94a3b8;
+  margin: 0 0 14px 0;
+}
+
+.persona-features-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.persona-feature-pill {
+  font-size: 11px;
+  font-weight: 500;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.persona-card.active .persona-feature-pill {
+  background: rgba(0, 229, 255, 0.06);
+  border-color: rgba(0, 229, 255, 0.2);
+  color: #e2e8f0;
+}
+
+/* Card Action Button */
+.persona-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.persona-select-btn {
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  outline: none;
+}
+
+.persona-card:not(.active) .persona-select-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+}
+
+.persona-card:not(.active) .persona-select-btn:hover {
+  background: rgba(0, 229, 255, 0.1);
+  border-color: #00e5ff;
+  color: #00e5ff;
+}
+
+.persona-card.active .persona-select-btn {
+  background: #00e5ff;
+  border: 1px solid #00e5ff;
+  color: #0a0b10;
+  font-weight: 700;
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.4);
+}
+

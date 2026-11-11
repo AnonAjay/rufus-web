@@ -54,8 +54,10 @@ export const useAgentChat = (initialSessionId?: string) => {
             ? new Date(m.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
             : new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           actions: m.actions || [],
+          actionType: m.actionType,
+          confidence: m.confidence,
           modelUsed: m.modelUsed,
-          accuracy: m.accuracy || "99.4%",
+          accuracy: m.accuracy,
         }));
         setMessages(loadedMessages);
       }
@@ -140,6 +142,7 @@ export const useAgentChat = (initialSessionId?: string) => {
       setError(null);
 
       try {
+        const activePersona = localStorage.getItem("rufus_active_persona") || "auto";
         const response = await fetch(`${API_BASE_URL}/agent/chat`, {
           method: "POST",
           headers: {
@@ -148,6 +151,7 @@ export const useAgentChat = (initialSessionId?: string) => {
           body: JSON.stringify({
             session_id: sessionId,
             message: text.trim(),
+            persona: activePersona,
           }),
         });
 
@@ -166,6 +170,8 @@ export const useAgentChat = (initialSessionId?: string) => {
           text: data.reply,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           actions: data.actions,
+          actionType: (data.action_type as "speech" | "action") || undefined,
+          confidence: data.confidence,
           modelUsed: data.model_used,
         };
 
@@ -198,9 +204,11 @@ export const useAgentChat = (initialSessionId?: string) => {
       setError(null);
 
       try {
+        const activePersona = localStorage.getItem("rufus_active_persona") || "auto";
         const formData = new FormData();
         formData.append("session_id", sessionId);
         formData.append("audio_file", audioBlob, "voice.webm");
+        formData.append("persona", activePersona);
 
         const response = await fetch(`${API_BASE_URL}/agent/voice`, {
           method: "POST",
@@ -228,6 +236,8 @@ export const useAgentChat = (initialSessionId?: string) => {
           text: data.reply_text,
           timestamp: timeStr,
           actions: data.actions,
+          actionType: (data.action_type as "speech" | "action") || undefined,
+          confidence: data.confidence,
           modelUsed: data.model_used,
         };
 
