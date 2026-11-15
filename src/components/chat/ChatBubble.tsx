@@ -2,6 +2,7 @@ import React from "react";
 import { ChatMessage } from "../../types/agent";
 import { SecurityApprovalBox } from "./SecurityApprovalBox";
 import { RufusEyesLogo } from "../layout/TitleBarIcons";
+import { MarkdownRenderer } from "../markdown/MarkdownRenderer";
 import "./ChatBubble.css";
 
 export interface ChatBubbleProps {
@@ -65,7 +66,7 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
 
         {/* Response Body Text */}
         <div className="rufus-dialog-body">
-          {message.text}
+          <MarkdownRenderer content={message.text} />
         </div>
 
         {/* Optional Security Guardrail Box (HITL Action Authorization) */}

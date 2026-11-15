@@ -10,7 +10,7 @@ import { HistoryView } from "./components/history/HistoryView";
 import { FocusTimers } from "./components/productivity/FocusTimers";
 import { TasksReminders } from "./components/productivity/TasksReminders";
 import { AppsSkillsView } from "./components/apps/AppsSkillsView";
-import { PersonasView } from "./components/personas/PersonasView";
+import { StuntsView } from "./components/stunts/StuntsView";
 import { useAgentChat } from "./hooks/useAgentChat";
 import "./App.css";
 
@@ -32,9 +32,6 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<NavTab>("assistant");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [activeFocusTask, setActiveFocusTask] = useState<string | undefined>();
-  const [activePersona, setActivePersona] = useState<string>(() => {
-    return localStorage.getItem("rufus_active_persona") || "auto";
-  });
 
   // Auto-scroll chat feed to bottom on new messages
   useEffect(() => {
@@ -76,7 +73,7 @@ export const App: React.FC = () => {
             activeTab !== "history" &&
             activeTab !== "focus" &&
             activeTab !== "apps" &&
-            activeTab !== "personas" && (
+            activeTab !== "stunts" && (
               <ViewHeader activeTab={activeTab} isLive={true} />
             )}
 
@@ -203,16 +200,8 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {/* TAB 9: PERSONAS */}
-            {activeTab === "personas" && (
-              <PersonasView
-                activePersonaId={activePersona}
-                onSelectPersona={(id) => {
-                  setActivePersona(id);
-                  localStorage.setItem("rufus_active_persona", id);
-                }}
-              />
-            )}
+            {/* TAB 9: STUNTS */}
+            {activeTab === "stunts" && <StuntsView />}
 
             {/* TAB 10: MEMORY EXPLORER (MAIN TASK) */}
             {activeTab === "memory" && (

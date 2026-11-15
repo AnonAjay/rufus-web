@@ -53,10 +53,10 @@ const TAB_METADATA: Record<NavTab, { title: string; subtitle: string; category: 
     title: "Robot Telemetry",
     subtitle: "ESP32 WROOM-32 hardware link, battery voltage, WiFi RSSI, and MQTT broker.",
   },
-  personas: {
+  stunts: {
     category: "ROBOT",
-    title: "Rufus Personas",
-    subtitle: "Switchable personality prompts, speech styles, and TTS voice profiles.",
+    title: "Robot Stunts",
+    subtitle: "Physical kinematics, 4x SG90 servo choreography, and MQTT execution.",
   },
   mood: {
     category: "ROBOT",

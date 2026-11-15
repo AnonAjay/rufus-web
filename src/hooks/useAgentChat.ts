@@ -142,7 +142,6 @@ export const useAgentChat = (initialSessionId?: string) => {
       setError(null);
 
       try {
-        const activePersona = localStorage.getItem("rufus_active_persona") || "auto";
         const response = await fetch(`${API_BASE_URL}/agent/chat`, {
           method: "POST",
           headers: {
@@ -151,7 +150,7 @@ export const useAgentChat = (initialSessionId?: string) => {
           body: JSON.stringify({
             session_id: sessionId,
             message: text.trim(),
-            persona: activePersona,
+            persona: "auto",
           }),
         });
 
@@ -204,11 +203,10 @@ export const useAgentChat = (initialSessionId?: string) => {
       setError(null);
 
       try {
-        const activePersona = localStorage.getItem("rufus_active_persona") || "auto";
         const formData = new FormData();
         formData.append("session_id", sessionId);
         formData.append("audio_file", audioBlob, "voice.webm");
-        formData.append("persona", activePersona);
+        formData.append("persona", "auto");
 
         const response = await fetch(`${API_BASE_URL}/agent/voice`, {
           method: "POST",
