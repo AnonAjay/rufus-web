@@ -36,9 +36,7 @@ export const AppsSkillsView: React.FC = () => {
   const [customAppPath, setCustomAppPath] = useState("");
   const [customAppCategory, setCustomAppCategory] = useState("Productivity");
 
-  // Testing & Toast state
-  const [isTestingMcp, setIsTestingMcp] = useState(false);
-  const [testResult, setTestResult] = useState<string | null>(null);
+  // Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimeoutRef = useRef<number | null>(null);
 
@@ -119,12 +117,10 @@ export const AppsSkillsView: React.FC = () => {
     return list;
   }, [integrations, activeTab, searchQuery]);
 
-  // Active / Disabled counts
+  // Active / Tab counts
   const totalCount = integrations.length;
   const appsCount = integrations.filter((i) => i.type === "app").length;
   const skillsCount = integrations.filter((i) => i.type === "skill").length;
-  const activeCount = integrations.filter((i) => i.enabled).length;
-  const disabledCount = totalCount - activeCount;
 
   // Toggle master enabled state for an app/skill
   const handleToggleMaster = (id: string, e?: React.MouseEvent) => {
@@ -165,18 +161,6 @@ export const AppsSkillsView: React.FC = () => {
         return item;
       })
     );
-  };
-
-  // Test MCP connection simulation
-  const handleTestMcp = (item: IntegrationItem) => {
-    setIsTestingMcp(true);
-    setTestResult(null);
-
-    window.setTimeout(() => {
-      setIsTestingMcp(false);
-      setTestResult(`✓ Active: Connected to ${item.mcpPackage || item.id} (latency 14ms)`);
-      showToast(`Connection verified for ${item.name}`);
-    }, 850);
   };
 
   // Reset tool permissions for an app
@@ -315,9 +299,6 @@ export const AppsSkillsView: React.FC = () => {
         {/* Row 1: Heading */}
         <div className="apps-heading-row">
           <h1 className="apps-main-heading">Apps & Skills</h1>
-          <span className="apps-status-summary">
-            {activeCount} Active • {disabledCount} Disabled
-          </span>
         </div>
 
         {/* Row 2: Controls Bar: Segmented Tabs on Left, Search + Actions on Right */}
@@ -442,9 +423,6 @@ export const AppsSkillsView: React.FC = () => {
             <div className="apps-cards-grid">
               {filteredIntegrations.map((item) => {
                 const isSelected = item.id === selectedItemId;
-                const activeTools = item.tools.filter((t) => t.enabled).length;
-                const totalTools = item.tools.length;
-                const hasDisabledTools = activeTools < totalTools;
 
                 return (
                   <div
@@ -454,55 +432,27 @@ export const AppsSkillsView: React.FC = () => {
                     }`}
                     onClick={() => setSelectedItemId(item.id)}
                   >
-                    {/* Top Row: App Icon + Status Dot + Quick Master Toggle */}
+                    {/* Header: Icon on Left, Master Toggle on Right */}
                     <div className="app-card-header">
                       <div className="app-card-icon-wrap" style={{ borderColor: item.brandColor || "#00f0ff" }}>
-                        <AppIcon iconId={item.iconId} size={24} brandColor={item.brandColor} />
+                        <AppIcon iconId={item.iconId} size={22} brandColor={item.brandColor} />
                       </div>
 
-                      <div className="app-card-header-right">
-                        <span className={`app-status-badge ${item.enabled ? "active" : "inactive"}`}>
-                          <span className="app-status-dot" />
-                          {item.enabled ? "Active" : "Disabled"}
-                        </span>
-
-                        {/* Apple-style Master Switch */}
-                        <div
-                          className={`apple-toggle ${item.enabled ? "on" : "off"}`}
-                          onClick={(e) => handleToggleMaster(item.id, e)}
-                          title={`${item.enabled ? "Disable" : "Enable"} ${item.name}`}
-                        >
-                          <div className="apple-toggle-knob" />
-                        </div>
+                      <div
+                        className={`apple-toggle ${item.enabled ? "on" : "off"}`}
+                        onClick={(e) => handleToggleMaster(item.id, e)}
+                        title={`${item.enabled ? "Disable" : "Enable"} ${item.name}`}
+                      >
+                        <div className="apple-toggle-knob" />
                       </div>
                     </div>
 
-                    {/* Middle: Title & Category Pill */}
-                    <div className="app-card-title-group">
+                    {/* Body: App / Skill Name & Capability */}
+                    <div className="app-card-body">
                       <h3 className="app-card-title">{item.name}</h3>
-                      <span className="app-card-category-pill">{item.category}</span>
-                    </div>
-
-                    {/* Description */}
-                    <p className="app-card-desc" title={item.description}>
-                      {item.description}
-                    </p>
-
-                    {/* Footer: Capabilities / Tools Count & Settings Hint */}
-                    <div className="app-card-footer">
-                      <div className="app-card-tools-count">
-                        <span className="tools-count-icon">⚡</span>
-                        <span className="tools-count-text">
-                          {activeTools}/{totalTools} tools active
-                        </span>
-                        {hasDisabledTools && item.enabled && (
-                          <span className="tools-warning-pill" title="Some tools excluded from LLM">
-                            Restricted
-                          </span>
-                        )}
-                      </div>
-
-                      <span className="app-card-click-hint">Inspect ›</span>
+                      <p className="app-card-desc" title={item.description}>
+                        {item.description}
+                      </p>
                     </div>
                   </div>
                 );
@@ -511,8 +461,17 @@ export const AppsSkillsView: React.FC = () => {
           )}
         </div>
 
+        {/* Backdrop Overlay (dimmed cards area, dismiss on click) */}
+        {selectedItem && (
+          <div
+            className="apps-workspace-backdrop"
+            onClick={() => setSelectedItemId(null)}
+            title="Click to close panel"
+          />
+        )}
+
         {/* =========================================================================
-            RIGHT SLIDE-OVER INSPECTOR DRAWER
+            RIGHT SLIDE-OVER INSPECTOR DRAWER (Z-Index Overlay)
             ========================================================================= */}
         {selectedItem && (
           <aside className="apps-inspector-drawer">
@@ -537,74 +496,30 @@ export const AppsSkillsView: React.FC = () => {
                 </div>
               </div>
 
-              <button
-                type="button"
-                className="drawer-close-btn"
-                onClick={() => setSelectedItemId(null)}
-                title="Close panel (Esc)"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="drawer-content-scroll">
-              {/* Master App State Banner */}
-              <div className={`drawer-master-banner ${selectedItem.enabled ? "active" : "disabled"}`}>
-                <div className="master-banner-info">
-                  <span className="master-banner-status">
-                    {selectedItem.enabled ? "Integration Enabled" : "Integration Disabled"}
-                  </span>
-                  <span className="master-banner-sub">
-                    {selectedItem.enabled
-                      ? "Rufus has permission to query and utilize approved tools."
-                      : "Completely excluded from the AI agent and tool router."}
-                  </span>
-                </div>
+              <div className="drawer-header-right">
                 <div
-                  className={`apple-toggle large ${selectedItem.enabled ? "on" : "off"}`}
+                  className={`apple-toggle ${selectedItem.enabled ? "on" : "off"}`}
                   onClick={() => handleToggleMaster(selectedItem.id)}
+                  title={`${selectedItem.enabled ? "Disable" : "Enable"} ${selectedItem.name}`}
                 >
                   <div className="apple-toggle-knob" />
                 </div>
+                <button
+                  type="button"
+                  className="drawer-close-btn"
+                  onClick={() => setSelectedItemId(null)}
+                  title="Close panel (Esc)"
+                >
+                  ✕
+                </button>
               </div>
+            </div>
 
-              {/* MCP / System Metadata Card */}
-              <div className="drawer-section-card">
-                <h4 className="drawer-section-label">Architecture & Endpoint</h4>
-
-                {selectedItem.path && (
-                  <div className="drawer-info-row">
-                    <span className="info-row-label">Windows Path</span>
-                    <span className="info-row-value mono" title={selectedItem.path}>
-                      {selectedItem.path}
-                    </span>
-                  </div>
-                )}
-
-                <div className="drawer-info-row">
-                  <span className="info-row-label">MCP Server</span>
-                  <span className="info-row-value mono">
-                    {selectedItem.mcpPackage || `rufus-${selectedItem.id}`}
-                  </span>
-                </div>
-
-                <div className="drawer-info-row">
-                  <span className="info-row-label">Agent Protocol</span>
-                  <span className="info-row-badge-ready">
-                    <span className="ready-dot" /> Connected & Active
-                  </span>
-                </div>
-              </div>
-
-              {/* Tool Permissions & Allowlist Controls */}
+            <div className="drawer-content-scroll">
+              {/* Tool Permissions & Capabilities (Apple-Style Clean List) */}
               <div className="drawer-tools-section">
                 <div className="tools-section-header">
-                  <div>
-                    <h4 className="drawer-section-label">Model Tool Permissions (Allowlist)</h4>
-                    <p className="tools-section-sub">
-                      Control which actions Rufus is permitted to call. Disabled actions are stripped from model prompts.
-                    </p>
-                  </div>
+                  <h4 className="drawer-section-label">Permissions & Capabilities</h4>
                 </div>
 
                 <div className="tools-permission-list">
@@ -617,17 +532,7 @@ export const AppsSkillsView: React.FC = () => {
                         }`}
                       >
                         <div className="tool-card-main">
-                          <div className="tool-card-header">
-                            <span className="tool-card-name">{tool.name}</span>
-                            <span className={`tool-danger-pill ${tool.dangerLevel}`}>
-                              {tool.dangerLevel}
-                            </span>
-                          </div>
-
-                          <span className="tool-card-action-key mono">
-                            action: {tool.actionKey}
-                          </span>
-
+                          <span className="tool-card-name">{tool.name}</span>
                           <p className="tool-card-description">{tool.description}</p>
                         </div>
 
@@ -638,15 +543,12 @@ export const AppsSkillsView: React.FC = () => {
                             onClick={() => handleToggleTool(selectedItem.id, tool.id)}
                             title={
                               tool.enabled
-                                ? "Disable this specific action"
-                                : "Allow Rufus to invoke this action"
+                                ? "Disable this capability"
+                                : "Allow Rufus to invoke this capability"
                             }
                           >
                             <div className="apple-toggle-knob" />
                           </div>
-                          <span className="tool-toggle-status-label">
-                            {tool.enabled && selectedItem.enabled ? "Allowed" : "Blocked"}
-                          </span>
                         </div>
                       </div>
                     );
@@ -657,38 +559,14 @@ export const AppsSkillsView: React.FC = () => {
 
             {/* Drawer Actions Footer */}
             <div className="drawer-footer">
-              <div className="drawer-footer-actions">
-                <button
-                  type="button"
-                  className="drawer-test-btn"
-                  onClick={() => handleTestMcp(selectedItem)}
-                  disabled={isTestingMcp}
-                >
-                  {isTestingMcp ? (
-                    <>
-                      <span className="drawer-spinner" /> Testing MCP...
-                    </>
-                  ) : (
-                    <>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                      </svg>
-                      Test Server Connection
-                    </>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  className="drawer-reset-btn"
-                  onClick={() => handleResetPermissions(selectedItem)}
-                  title="Reset all tools to default states"
-                >
-                  Reset Defaults
-                </button>
-              </div>
-
-              {testResult && <div className="drawer-test-result">{testResult}</div>}
+              <button
+                type="button"
+                className="drawer-reset-btn"
+                onClick={() => handleResetPermissions(selectedItem)}
+                title="Reset all tools to default states"
+              >
+                Reset to Defaults
+              </button>
             </div>
           </aside>
         )}
