@@ -92,14 +92,18 @@ export const useTauriWindow = () => {
   }, []);
 
   /**
-   * Open / Show the detached Island Capsule window
+   * Open / Show the detached Island Capsule window and minimize the workstation
    */
   const openCapsuleWindow = useCallback(async () => {
     try {
+      const currentWin = getCurrentWindow();
       const capsule = await Window.getByLabel("capsule");
       if (capsule) {
         await capsule.show();
         await capsule.setFocus();
+        if (currentWin.label === "main") {
+          await currentWin.minimize();
+        }
         setWindowState((prev) => ({ ...prev, isCapsuleVisible: true }));
       }
     } catch (err) {
@@ -108,13 +112,19 @@ export const useTauriWindow = () => {
   }, []);
 
   /**
-   * Hide the detached Island Capsule window
+   * Hide the detached Island Capsule window and restore workstation
    */
   const hideCapsuleWindow = useCallback(async () => {
     try {
+      const currentWin = getCurrentWindow();
       const capsule = await Window.getByLabel("capsule");
       if (capsule) {
         await capsule.hide();
+        if (currentWin.label === "main") {
+          await currentWin.unminimize();
+          await currentWin.show();
+          await currentWin.setFocus();
+        }
         setWindowState((prev) => ({ ...prev, isCapsuleVisible: false }));
       }
     } catch (err) {
@@ -124,18 +134,29 @@ export const useTauriWindow = () => {
 
   /**
    * Toggle the detached Island Capsule window visibility
+   * Seamless transition: Showing capsule minimizes main window to taskbar;
+   * hiding capsule restores and focuses main window.
    */
   const toggleMiniMode = useCallback(async () => {
     try {
+      const currentWin = getCurrentWindow();
       const capsule = await Window.getByLabel("capsule");
       if (capsule) {
         const isVis = await capsule.isVisible();
         if (isVis) {
           await capsule.hide();
+          if (currentWin.label === "main") {
+            await currentWin.unminimize();
+            await currentWin.show();
+            await currentWin.setFocus();
+          }
           setWindowState((prev) => ({ ...prev, isCapsuleVisible: false }));
         } else {
           await capsule.show();
           await capsule.setFocus();
+          if (currentWin.label === "main") {
+            await currentWin.minimize();
+          }
           setWindowState((prev) => ({ ...prev, isCapsuleVisible: true }));
         }
       }

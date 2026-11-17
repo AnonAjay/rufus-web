@@ -252,6 +252,24 @@ export const FocusTimers: React.FC<FocusTimersProps> = ({
     }
   };
 
+  // Listen for Toggle Commands from Island Capsule
+  useEffect(() => {
+    let channel: BroadcastChannel | null = null;
+    try {
+      channel = new BroadcastChannel("rufus_agent_sync");
+      channel.onmessage = (event) => {
+        if (event.data?.type === "TOGGLE_FOCUS_TIMER") {
+          handleTogglePlay();
+        }
+      };
+    } catch {
+      // fallback
+    }
+    return () => {
+      channel?.close();
+    };
+  }, [canvasMode, totalSeconds]);
+
   // Reset Timer
   const handleReset = () => {
     if (timerRef.current) clearInterval(timerRef.current);
