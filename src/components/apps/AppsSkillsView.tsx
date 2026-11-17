@@ -4,7 +4,21 @@ import { INITIAL_INTEGRATIONS, DISCOVERABLE_PC_APPS } from "./appPresets";
 import { AppIcon } from "./AppIcon";
 import "./AppsSkillsView.css";
 
+const API_BASE = "http://127.0.0.1:8000";
 const STORAGE_KEY = "rufus_apps_skills_integrations_v1";
+
+const syncPermissionsToBackend = async (currentList: IntegrationItem[]) => {
+  try {
+    await fetch(`${API_BASE}/agent/apps/permissions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ integrations: currentList }),
+    });
+  } catch (err) {
+    // Non-fatal: backend might be offline during dev
+    console.warn("[AppsSkillsView] Permissions backend sync:", err);
+  }
+};
 
 export const AppsSkillsView: React.FC = () => {
   // Load saved state or default presets
@@ -43,10 +57,11 @@ export const AppsSkillsView: React.FC = () => {
   // Search input ref for keyboard shortcut '/'
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Persist to localStorage whenever integrations change
+  // Persist to localStorage whenever integrations change & sync with backend allowlist
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(integrations));
+      syncPermissionsToBackend(integrations);
     } catch (e) {
       console.error("Failed to persist integrations:", e);
     }

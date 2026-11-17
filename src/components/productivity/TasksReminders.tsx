@@ -109,6 +109,14 @@ export const TasksReminders: React.FC<TasksRemindersProps> = ({ onStartFocusOnTa
 
   return (
     <div className="tasks-reminders-container">
+      {/* Top Heading */}
+      <div className="tasks-heading-row">
+        <h1 className="tasks-main-heading">Tasks & Reminders</h1>
+        <span className="tasks-count-pill">
+          {tasks.filter((t) => !t.done).length} active
+        </span>
+      </div>
+
       {/* Top Creation Bar */}
       <form className="task-add-form" onSubmit={handleAddTask}>
         <div className="task-input-row">

@@ -188,9 +188,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             type="button"
-            className={`nav-item ${activeTab === "calendar" ? "active" : ""}`}
+            className={`nav-item locked ${activeTab === "calendar" ? "active" : ""}`}
             onClick={() => onSelectTab("calendar")}
-            title="Calendar Schedule"
+            title="Calendar Schedule (Locked)"
           >
             <span className="nav-icon">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -201,6 +201,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </svg>
             </span>
             <span className="nav-text">Calendar</span>
+            {renderLock()}
           </button>
 
           <button
@@ -226,9 +227,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             type="button"
-            className={`nav-item ${activeTab === "robot-telemetry" ? "active" : ""}`}
+            className={`nav-item locked ${activeTab === "robot-telemetry" ? "active" : ""}`}
             onClick={() => onSelectTab("robot-telemetry")}
-            title="Robot Hardware Telemetry"
+            title="Robot Hardware Telemetry (Locked)"
           >
             <span className="nav-icon">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -245,6 +246,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </svg>
             </span>
             <span className="nav-text">Robot Telemetry</span>
+            {renderLock()}
           </button>
 
           <button
