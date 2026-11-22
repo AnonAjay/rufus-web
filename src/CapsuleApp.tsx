@@ -84,9 +84,9 @@ export const CapsuleApp: React.FC = () => {
   const getTargetDimensions = useCallback((mode: CapsuleMode, isFocus: boolean): { width: number; height: number } => {
     switch (mode) {
       case "ambient":
-        return { width: 76, height: 36 };
+        return { width: 64, height: 30 };
       case "hover":
-        return isFocus ? { width: 190, height: 40 } : { width: 140, height: 40 };
+        return isFocus ? { width: 190, height: 36 } : { width: 130, height: 36 };
       case "listening":
         return { width: 260, height: 44 };
       case "processing":
@@ -98,7 +98,7 @@ export const CapsuleApp: React.FC = () => {
       case "answering_long":
         return { width: 380, height: 116 };
       default:
-        return { width: 76, height: 36 };
+        return { width: 64, height: 30 };
     }
   }, []);
 
@@ -110,6 +110,7 @@ export const CapsuleApp: React.FC = () => {
 
   // BroadcastChannel Sync setup
   useEffect(() => {
+    document.documentElement.classList.add("capsule-active");
     document.body.classList.add("capsule-active");
 
     const channel = new BroadcastChannel("rufus_agent_sync");
@@ -133,6 +134,7 @@ export const CapsuleApp: React.FC = () => {
     };
 
     return () => {
+      document.documentElement.classList.remove("capsule-active");
       document.body.classList.remove("capsule-active");
       channel.close();
     };
@@ -140,7 +142,7 @@ export const CapsuleApp: React.FC = () => {
 
   // Center on mount
   useEffect(() => {
-    updateWindowGeometry(80, 36);
+    updateWindowGeometry(64, 30);
   }, [updateWindowGeometry]);
 
   // Clear auto-collapse helper

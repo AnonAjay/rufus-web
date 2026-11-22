@@ -38,11 +38,11 @@
    Squircle Modes & Dimension Matrix (25% border-radius)
    ========================================================================== */
 
-/* CASE 1: Ambient Rest (76x36 px, 10px radius) */
+/* CASE 1: Ambient Rest (64x30 px, 15px radius) */
 .island-capsule.mode-ambient {
-  width: 76px;
-  height: 36px;
-  border-radius: 10px;
+  width: 64px;
+  height: 30px;
+  border-radius: 15px;
   padding: 0;
   display: flex;
   align-items: center;
@@ -57,14 +57,14 @@
     0 0 20px rgba(0, 229, 255, 0.28);
 }
 
-/* CASE 2: Hovered Idle / Focus (140x40 px or 190x40 px, 10px radius) */
+/* CASE 2: Hovered Idle / Focus (130x36 px or 190x36 px, 12px radius) */
 .island-capsule.mode-hover {
-  min-width: 140px;
-  height: 40px;
-  border-radius: 10px;
-  padding: 0 10px;
+  min-width: 130px;
+  height: 36px;
+  border-radius: 12px;
+  padding: 0 8px;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
 }
 
 /* CASE 3: Wispr Flow Listening Bar (260x44 px, 12px radius) */
@@ -521,13 +521,13 @@
 
 /* Ambient eyes directly fill the capsule with zero inner border gap */
 .mode-ambient .capsule-eyes {
-  gap: 8px;
+  gap: 6px;
 }
 
 .mode-ambient .capsule-eye {
-  width: 11px;
-  height: 18px;
-  border-radius: 3.5px;
+  width: 14px;
+  height: 24px;
+  border-radius: 6px;
   box-shadow: 0 0 10px #00e5ff, 0 0 18px rgba(0, 229, 255, 0.5);
 }
 

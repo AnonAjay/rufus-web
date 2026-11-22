@@ -56,12 +56,16 @@ body {
   user-select: none;
 }
 
+html.capsule-active,
+html:has(body.capsule-active),
 body.capsule-active {
   background: transparent !important;
+  background-color: transparent !important;
 }
 
 body.capsule-active #root {
   background: transparent !important;
+  background-color: transparent !important;
   display: flex;
   align-items: center;
   justify-content: center;
